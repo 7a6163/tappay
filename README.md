@@ -46,30 +46,53 @@ end
 
 ## Usage
 
-### Regular Credit Card Payment
+### Pay by Prime
+
+Use this method when the customer wants to pay with their credit card without storing the card information. The customer will need to enter their card information for each transaction.
 
 ```ruby
-payment = Tappay::CreditCard::Pay.new(
+# Payment with prime (card info not stored)
+result = Tappay::CreditCard::Pay.by_prime(
   prime: 'prime_from_tappay_sdk',
   amount: 100,
-  details: 'Product description',
-  cardholder: {
-    phone_number: '+886923456789',
-    name: 'John Doe',
-    email: 'john@example.com'
-  }
+  order_number: 'ORDER-123',
+  currency: 'TWD',
+  redirect_url: 'https://your-site.com/return',
+  three_domain_secure: true,  # Enable 3D secure if needed
+  remember: true  # Set to true if you want to store the card for future payments
 )
 
-begin
-  result = payment.execute
-  if result['status'] == 0
-    # Payment successful
-    transaction_id = result['rec_trade_id']
+if result['status'] == 0
+  # Payment successful
+  transaction_id = result['rec_trade_id']
+  if result['card_secret']
+    # If remember is true, you'll get these tokens
+    card_key = result['card_secret']['card_key']
+    card_token = result['card_secret']['card_token']
+    # Store card_key and card_token securely for future payments
   end
-rescue Tappay::PaymentError => e
-  # Handle payment error
-rescue Tappay::ValidationError => e
-  # Handle validation error
+end
+```
+
+### Pay by Token
+
+Use this method when the customer has opted to save their card information for future purchases. This provides a more convenient checkout experience as customers don't need to re-enter their card information.
+
+```ruby
+# Recurring payment with stored card token
+result = Tappay::CreditCard::Pay.by_token(
+  card_key: 'stored_card_key',
+  card_token: 'stored_card_token',
+  amount: 100,
+  order_number: 'ORDER-124',
+  currency: 'TWD',
+  redirect_url: 'https://your-site.com/return',
+  three_domain_secure: true  # Enable 3D secure if needed
+)
+
+if result['status'] == 0
+  # Payment successful
+  transaction_id = result['rec_trade_id']
 end
 ```
 
@@ -120,16 +143,23 @@ rescue Tappay::RefundError => e
 end
 ```
 
-## Error Handling
+### Error Handling
 
-The gem provides several error classes for different scenarios:
-
-- `Tappay::ConfigurationError`: Missing or invalid configuration
-- `Tappay::ConnectionError`: Network or API endpoint issues
-- `Tappay::ValidationError`: Invalid parameters
-- `Tappay::PaymentError`: Payment processing failed
-- `Tappay::RefundError`: Refund processing failed
-- `Tappay::APIError`: General API errors with status code and message
+```ruby
+begin
+  result = Tappay::CreditCard::Pay.by_prime(
+    prime: 'prime_from_tappay_sdk',
+    amount: 100,
+    order_number: 'ORDER-123'
+  )
+rescue Tappay::PaymentError => e
+  # Handle payment error
+  puts e.message
+rescue Tappay::ValidationError => e
+  # Handle validation error
+  puts e.message
+end
+```
 
 ## Development
 
