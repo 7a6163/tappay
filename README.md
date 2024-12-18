@@ -40,7 +40,7 @@ Tappay.configure do |config|
   config.partner_key = 'your_partner_key'
   config.merchant_id = 'your_merchant_id'
   config.instalment_merchant_id = 'your_instalment_merchant_id' # Optional
-  config.sandbox = true # Set to false for production
+  config.mode = :sandbox # Set to :production for production environment
 end
 ```
 
@@ -73,7 +73,7 @@ rescue Tappay::ValidationError => e
 end
 ```
 
-### Instalment Payment (分期付款)
+### Instalment Payment
 
 ```ruby
 payment = Tappay::CreditCard::Instalment.new(
