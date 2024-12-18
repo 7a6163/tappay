@@ -5,7 +5,7 @@ A Ruby library for integrating with TapPay payment services. This gem provides a
 ## Features
 
 - Credit card payments (one-time and tokenized)
-- Instalment payments (分期付款)
+- Instalment payments
 - Refund processing
 - Transaction status queries
 - Comprehensive error handling
@@ -39,7 +39,7 @@ Configure the gem with your TapPay credentials:
 Tappay.configure do |config|
   config.partner_key = 'your_partner_key'
   config.merchant_id = 'your_merchant_id'
-  config.instalment_merchant_id = 'your_instalment_merchant_id' # 分期付款用
+  config.instalment_merchant_id = 'your_instalment_merchant_id' # Optional
   config.sandbox = true # Set to false for production
 end
 ```
