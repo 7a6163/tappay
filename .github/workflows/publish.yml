@@ -20,7 +20,12 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ruby
-        bundler-cache: true
+        bundler-cache: false
+
+    - name: Install dependencies
+      run: |
+        bundle config set --local frozen false
+        bundle install
 
     - uses: rubygems/release-gem@v1
 
