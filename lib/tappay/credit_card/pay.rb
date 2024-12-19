@@ -32,8 +32,22 @@ module Tappay
           order_number: options[:order_number],
           redirect_url: options[:redirect_url],
           three_domain_secure: options[:three_domain_secure] || false,
-          remember: options[:remember] || false
+          remember: options[:remember] || false,
+          card_holder: card_holder_data
         }
+      end
+
+      def card_holder_data
+        return unless options[:card_holder]
+        
+        case options[:card_holder]
+        when CardHolder
+          options[:card_holder].to_h
+        when Hash
+          options[:card_holder]
+        else
+          raise ValidationError, "Invalid card_holder format"
+        end
       end
 
       def validate_options!
@@ -65,8 +79,22 @@ module Tappay
           currency: options[:currency] || 'TWD',
           order_number: options[:order_number],
           redirect_url: options[:redirect_url],
-          three_domain_secure: options[:three_domain_secure] || false
+          three_domain_secure: options[:three_domain_secure] || false,
+          card_holder: card_holder_data
         }
+      end
+
+      def card_holder_data
+        return unless options[:card_holder]
+        
+        case options[:card_holder]
+        when CardHolder
+          options[:card_holder].to_h
+        when Hash
+          options[:card_holder]
+        else
+          raise ValidationError, "Invalid card_holder format"
+        end
       end
 
       def validate_options!

@@ -97,22 +97,43 @@ config.mode = :production  # Uses https://prod.tappaysdk.com/...
 
 ## Card Holder Information
 
-You can create card holder information using the CardHolder class:
+You can provide cardholder information in two ways:
+
+### 1. Using CardHolder Object (Recommended)
 
 ```ruby
+# Create a CardHolder object
 card_holder = Tappay::CardHolder.new(
   name: 'John Doe',
   email: 'john@example.com',
   phone_number: '+886923456789'
 )
 
-# Use in payment
-payment = Tappay::CreditCard::Pay.new(
+# Use in payment directly
+result = Tappay::CreditCard::Pay.by_prime(
   prime: 'prime_from_tappay_sdk',
-  card_holder: card_holder.as_json,
-  # ... other options
+  amount: 100,
+  order_number: 'ORDER-123',
+  card_holder: card_holder  # No need to call as_json
 )
 ```
+
+### 2. Using Hash Directly
+
+```ruby
+result = Tappay::CreditCard::Pay.by_prime(
+  prime: 'prime_from_tappay_sdk',
+  amount: 100,
+  order_number: 'ORDER-123',
+  card_holder: {
+    name: 'John Doe',
+    email: 'john@example.com',
+    phone_number: '+886923456789'
+  }
+)
+```
+
+Both approaches are valid and will work the same way. The CardHolder object provides a more structured way to handle cardholder information and includes validation.
 
 ## Usage
 
@@ -121,7 +142,7 @@ payment = Tappay::CreditCard::Pay.new(
 Use this method when the customer wants to pay with their credit card without storing the card information. The customer will need to enter their card information for each transaction.
 
 ```ruby
-# Payment with prime (card info not stored)
+# Basic payment with prime
 result = Tappay::CreditCard::Pay.by_prime(
   prime: 'prime_from_tappay_sdk',
   amount: 100,
@@ -129,7 +150,8 @@ result = Tappay::CreditCard::Pay.by_prime(
   currency: 'TWD',
   redirect_url: 'https://your-site.com/return',
   three_domain_secure: true,  # Enable 3D secure if needed
-  remember: true  # Set to true if you want to store the card for future payments
+  remember: true,  # Set to true if you want to store the card for future payments
+  card_holder: card_holder  # Optional cardholder information
 )
 
 if result['status'] == 0
@@ -157,7 +179,8 @@ result = Tappay::CreditCard::Pay.by_token(
   order_number: 'ORDER-124',
   currency: 'TWD',
   redirect_url: 'https://your-site.com/return',
-  three_domain_secure: true  # Enable 3D secure if needed
+  three_domain_secure: true,  # Enable 3D secure if needed
+  card_holder: card_holder  # Optional cardholder information
 )
 
 if result['status'] == 0

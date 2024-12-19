@@ -8,12 +8,13 @@ module Tappay
       @phone_number = phone_number
     end
 
-    def as_json
+    def to_h
       {
         name: name,
         email: email,
         phone_number: phone_number
       }
     end
+    alias_method :as_json, :to_h
   end
 end
