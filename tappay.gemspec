@@ -25,7 +25,6 @@ Gem::Specification.new do |spec|
   spec.bindir = "exe"
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
-  spec.require = "tappay"
 
   # Dependencies
   spec.add_dependency "httparty", "~> 0.21.0"

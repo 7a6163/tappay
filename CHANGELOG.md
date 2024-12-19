@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.6] - 2024-12-19
+
+### Fixed
+- Fixed gem loading issue by using proper require_relative
+
 ## [0.2.5] - 2024-12-19
 
 ### Added
