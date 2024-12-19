@@ -20,16 +20,9 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ruby
-        bundler-cache: false
+        bundler-cache: true
 
-    - name: Install dependencies
-      run: |
-        bundle install
-
-    - name: Publish to RubyGems
-      uses: rubygems/release-gem@v1
-      with:
-        release-token: ${{ secrets.GITHUB_TOKEN }}
+    - uses: rubygems/release-gem@v1
 
     - name: Publish to GitHub Packages
       run: |
