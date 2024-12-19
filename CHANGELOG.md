@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.7] - 2024-12-19
+
+### Added
+- Added app_id configuration option
+
 ## [0.2.6] - 2024-12-19
 
 ### Fixed
