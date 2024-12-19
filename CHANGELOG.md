@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1] - 2024-12-19
+
+### Changed
+- Improved CardHolder handling in Pay class
+- Added support for direct Hash input for cardholder information
+- Updated README with comprehensive cardholder information examples
+- Renamed `as_json` to `to_h` in CardHolder class (kept `as_json` as alias for backward compatibility)
+
 ## [0.2.0] - 2024-12-19
 
 ### Added
