@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.5] - 2024-12-19
+
+### Added
+- Added support for requiring gem as 'tappay'
+
+## [0.2.4] - 2024-12-19
+
+### Added
+- Added support for requiring gem as 'tappay_ruby'
+
+## [0.2.3] - 2024-12-19
+
+### Changed
+- Updated GitHub Actions workflow for gem publishing
+
 ## [0.2.1] - 2024-12-19
 
 ### Changed
