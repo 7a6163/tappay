@@ -9,7 +9,7 @@ module Tappay
 
       def execute
         client = Tappay::Client.new
-        response = client.post('/tpc/transaction/query', request_params)
+        response = client.post(Endpoints::Transaction.query_url, request_params)
         
         {
           number_of_transactions: response['number_of_transactions'],

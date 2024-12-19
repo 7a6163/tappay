@@ -5,6 +5,7 @@ require_relative "tappay/configuration"
 require_relative "tappay/client"
 require_relative "tappay/errors"
 require_relative "tappay/card_holder"
+require_relative "tappay/endpoints"
 require_relative "tappay/transaction/query"
 
 module Tappay

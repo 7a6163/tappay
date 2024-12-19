@@ -7,7 +7,7 @@ module Tappay
       end
 
       def execute
-        post(Tappay.configuration.refund_url, refund_data)
+        post(Endpoints::CreditCard.refund_url, refund_data)
       end
 
       private
