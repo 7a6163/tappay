@@ -24,7 +24,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        bundle config set --local frozen false
         bundle install
 
     - name: Publish to RubyGems
