@@ -10,6 +10,8 @@ A Ruby library for integrating with TapPay payment services. This gem provides a
 - Transaction status queries
 - Comprehensive error handling
 - Configurable sandbox/production environments
+- Environment-based endpoints management
+- Card holder information management
 
 ## Installation
 
@@ -33,15 +35,83 @@ $ gem install tappay_ruby
 
 ## Configuration
 
-Configure the gem with your TapPay credentials:
+There are several ways to configure the gem:
+
+### 1. Direct Configuration
+
+The simplest way to configure the gem:
 
 ```ruby
 Tappay.configure do |config|
-  config.partner_key = 'your_partner_key'
-  config.merchant_id = 'your_merchant_id'
-  config.instalment_merchant_id = 'your_instalment_merchant_id' # Optional
-  config.mode = :sandbox # Set to :production for production environment
+  # Environment settings
+  config.mode = Rails.env.production? ? :production : :sandbox
+  
+  # Common settings
+  config.partner_key = 'your_partner_key'.freeze
+  config.app_id = 'your_app_id'.freeze
+  config.merchant_id = 'your_merchant_id'.freeze
+  config.instalment_merchant_id = 'your_instalment_merchant_id'.freeze
+  config.currency = 'TWD'.freeze
+  config.vat_number = 'your_vat_number'.freeze
 end
+```
+
+### 2. Using Environment Variables
+
+For better security, you can use environment variables:
+
+```ruby
+Tappay.configure do |config|
+  config.mode = Rails.env.production? ? :production : :sandbox
+  config.partner_key = ENV['TAPPAY_PARTNER_KEY'].freeze
+  config.app_id = ENV['TAPPAY_APP_ID'].freeze
+  config.merchant_id = ENV['TAPPAY_MERCHANT_ID'].freeze
+  # ... other configurations
+end
+```
+
+### 3. Using Rails Credentials
+
+If you're using Rails, you can use credentials:
+
+```ruby
+Tappay.configure do |config|
+  config.mode = Rails.env.production? ? :production : :sandbox
+  config.partner_key = Rails.application.credentials.tappay[:partner_key].freeze
+  config.app_id = Rails.application.credentials.tappay[:app_id].freeze
+  # ... other configurations
+end
+```
+
+## Environment-based Endpoints
+
+The gem automatically handles different endpoints for sandbox and production environments. You don't need to specify the full URLs - just set the mode:
+
+```ruby
+# For sandbox (default)
+config.mode = :sandbox  # Uses https://sandbox.tappaysdk.com/...
+
+# For production
+config.mode = :production  # Uses https://prod.tappaysdk.com/...
+```
+
+## Card Holder Information
+
+You can create card holder information using the CardHolder class:
+
+```ruby
+card_holder = Tappay::CardHolder.new(
+  name: 'John Doe',
+  email: 'john@example.com',
+  phone_number: '+886923456789'
+)
+
+# Use in payment
+payment = Tappay::CreditCard::Pay.new(
+  prime: 'prime_from_tappay_sdk',
+  card_holder: card_holder.as_json,
+  # ... other options
+)
 ```
 
 ## Usage
