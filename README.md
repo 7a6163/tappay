@@ -45,7 +45,7 @@ The simplest way to configure the gem:
 Tappay.configure do |config|
   # Environment settings
   config.mode = Rails.env.production? ? :production : :sandbox
-  
+
   # Common settings
   config.partner_key = 'your_partner_key'.freeze
   config.app_id = 'your_app_id'.freeze
@@ -172,7 +172,7 @@ end
 payment = Tappay::CreditCard::Instalment.new(
   prime: 'prime_from_tappay_sdk',
   amount: 10000,
-  instalment: 6,  # 分6期
+  instalment: 6,  # 6 monthly installments
   details: 'Product description',
   cardholder: {
     phone_number: '+886923456789',
