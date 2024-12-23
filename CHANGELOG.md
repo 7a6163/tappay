@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.17] - 2024-12-23
+
+### Changed
+- Refactored instalment payment classes to have their own base class
+- Removed dependency on PayBase class for instalment payments
+- Simplified class hierarchy for better maintainability
+
 ## [0.2.16] - 2024-12-23
 
 ### Changed
