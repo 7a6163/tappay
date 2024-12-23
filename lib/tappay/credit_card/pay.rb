@@ -28,6 +28,7 @@ module Tappay
           merchant_id: Tappay.configuration.merchant_id,
           prime: options[:prime],
           amount: options[:amount],
+          details: options[:details],
           currency: options[:currency] || 'TWD',
           order_number: options[:order_number],
           redirect_url: options[:redirect_url],
@@ -39,7 +40,7 @@ module Tappay
 
       def card_holder_data
         return unless options[:card_holder]
-        
+
         case options[:card_holder]
         when CardHolder
           options[:card_holder].to_h
@@ -51,7 +52,7 @@ module Tappay
       end
 
       def validate_options!
-        required = [:prime, :amount, :order_number]
+        required = [:prime, :partner_key, :merchant_id, :amount, :details]
         missing = required.select { |key| options[key].nil? }
         raise ValidationError, "Missing required options: #{missing.join(', ')}" if missing.any?
       end
@@ -76,7 +77,8 @@ module Tappay
           card_key: options[:card_key],
           card_token: options[:card_token],
           amount: options[:amount],
-          currency: options[:currency] || 'TWD',
+          details: options[:details],
+          currency: options[:currency],
           order_number: options[:order_number],
           redirect_url: options[:redirect_url],
           three_domain_secure: options[:three_domain_secure] || false,
@@ -86,7 +88,7 @@ module Tappay
 
       def card_holder_data
         return unless options[:card_holder]
-        
+
         case options[:card_holder]
         when CardHolder
           options[:card_holder].to_h
@@ -98,7 +100,7 @@ module Tappay
       end
 
       def validate_options!
-        required = [:card_key, :card_token, :amount, :order_number]
+        required = [:card_key, :card_token, :partner_key, :merchant_id, :amount, :details, :currency]
         missing = required.select { |key| options[key].nil? }
         raise ValidationError, "Missing required options: #{missing.join(', ')}" if missing.any?
       end
