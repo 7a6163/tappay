@@ -27,7 +27,9 @@ module Tappay
           redirect_url: options[:redirect_url],
           three_domain_secure: options[:three_domain_secure] || false,
           instalment: options[:instalment]
-        }
+        }.tap do |data|
+          data[:cardholder] = card_holder_data if options[:cardholder]
+        end
       end
 
       def validate_options!
@@ -39,6 +41,17 @@ module Tappay
       def validate_instalment_options!
         unless options[:instalment].to_i.between?(1, 12)
           raise ValidationError, "Invalid instalment value. Must be between 1 and 12"
+        end
+      end
+
+      def card_holder_data
+        case options[:cardholder]
+        when CardHolder
+          options[:cardholder].to_h
+        when Hash
+          options[:cardholder]
+        else
+          raise ValidationError, "Invalid cardholder format"
         end
       end
     end
@@ -71,17 +84,6 @@ module Tappay
         required = [:prime, :cardholder]
         missing = required.select { |key| options[key].nil? }
         raise ValidationError, "Missing required options: #{missing.join(', ')}" if missing.any?
-      end
-
-      def card_holder_data
-        case options[:cardholder]
-        when CardHolder
-          options[:cardholder].to_h
-        when Hash
-          options[:cardholder]
-        else
-          raise ValidationError, "Invalid cardholder format"
-        end
       end
     end
 

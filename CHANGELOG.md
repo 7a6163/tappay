@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.27] - 2024-12-24
+
+### Fixed
+- Fixed cardholder parameter being always included in payment data even when not provided
+
+## [0.2.26] - 2024-12-24
+
+### Fixed
+- Removed cardholder parameter from InstallmentByToken to match TapPay API requirements
+
+## [0.2.25] - 2024-12-24
+
+### Fixed
+- Added cardholder parameter requirement for InstallmentByToken to match TapPay API requirements
+
 ## [0.2.22] - 2024-12-24
 
 ### Fixed
