@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.20] - 2024-12-23
+
+### Fixed
+- Fixed parameter name for cardholder in InstallmentBase class to match TapPay API requirements
+
 ## [0.2.19] - 2024-12-23
 
 ### Fixed
