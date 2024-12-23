@@ -1,6 +1,14 @@
 module Tappay
   module CreditCard
     class Instalment < Pay
+      def self.by_prime(options = {})
+        new(options)
+      end
+
+      def self.by_token(options = {})
+        new(options)
+      end
+
       def initialize(options = {})
         super
         validate_instalment_options!

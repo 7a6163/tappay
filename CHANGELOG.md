@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.13] - 2024-12-23
+
+### Added
+- Added by_prime and by_token class methods to Instalment class
+- Added execute method to Instalment class for handling instalment payments
+
+### Fixed
+- Fixed instalment payment handling in client applications
+
 ## [0.2.12] - 2024-12-23
 
 ### Fixed
