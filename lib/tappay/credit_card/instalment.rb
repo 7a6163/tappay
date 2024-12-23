@@ -26,14 +26,13 @@ module Tappay
           order_number: options[:order_number],
           redirect_url: options[:redirect_url],
           three_domain_secure: options[:three_domain_secure] || false,
-          cardholder: card_holder_data,
           instalment: options[:instalment]
-        }
+        }.tap do |data|
+          data[:cardholder] = card_holder_data if options[:cardholder]
+        end
       end
 
       def card_holder_data
-        return unless options[:cardholder]
-
         case options[:cardholder]
         when CardHolder
           options[:cardholder].to_h
@@ -81,7 +80,7 @@ module Tappay
 
       def validate_options!
         super
-        required = [:prime]
+        required = [:prime, :cardholder]
         missing = required.select { |key| options[key].nil? }
         raise ValidationError, "Missing required options: #{missing.join(', ')}" if missing.any?
       end
