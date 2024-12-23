@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.9] - 2024-12-23
+
+### Fixed
+- Removed partner_key and merchant_id from required options validation as they should be taken from configuration
+
 ## [0.2.8] - 2024-12-23
 
 ### Changed
