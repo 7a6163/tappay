@@ -1,13 +1,5 @@
-example_id                                            | status | run_time        |
------------------------------------------------------ | ------ | --------------- |
-./spec/tappay/configuration_spec.rb[1:1:1]            | passed | 0.00054 seconds |
-./spec/tappay/configuration_spec.rb[1:2:1]            | passed | 0.0005 seconds  |
-./spec/tappay/configuration_spec.rb[1:2:2]            | passed | 0.00005 seconds |
-./spec/tappay/configuration_spec.rb[1:2:3]            | passed | 0.00004 seconds |
-./spec/tappay/configuration_spec.rb[1:2:4]            | passed | 0.001 seconds   |
-./spec/tappay/configuration_spec.rb[1:3:1]            | passed | 0.00005 seconds |
-./spec/tappay/configuration_spec.rb[1:3:2]            | passed | 0.00004 seconds |
-./spec/tappay/credit_card/instalment_spec.rb[1:1:1:1] | failed | 0.618 seconds   |
-./spec/tappay/credit_card/instalment_spec.rb[1:1:2:1] | failed | 0.47719 seconds |
-./spec/tappay/credit_card/pay_spec.rb[1:1:1:1]        | failed | 0.44963 seconds |
-./spec/tappay/credit_card/pay_spec.rb[1:1:2:1]        | failed | 0.3884 seconds  |
+example_id                                           | status | run_time        |
+---------------------------------------------------- | ------ | --------------- |
+./spec/lib/tappay/transaction/query_spec.rb[1:1:1:1] | passed | 0.00487 seconds |
+./spec/lib/tappay/transaction/query_spec.rb[1:1:2:1] | passed | 0.00264 seconds |
+./spec/lib/tappay/transaction/query_spec.rb[1:1:3:1] | passed | 0.00025 seconds |

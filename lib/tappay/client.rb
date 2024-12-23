@@ -11,8 +11,6 @@ module Tappay
       @options = options
     end
 
-    private
-
     def post(url, data)
       response = self.class.post(
         url,
@@ -25,6 +23,8 @@ module Tappay
     rescue HTTParty::Error => e
       raise ConnectionError, "HTTP Request failed: #{e.message}"
     end
+
+    private
 
     def headers
       {
