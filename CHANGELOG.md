@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.22] - 2024-12-24
+
+### Fixed
+- Removed cardholder requirement from InstallmentByToken to match TapPay API requirements
+
 ## [0.2.20] - 2024-12-23
 
 ### Fixed

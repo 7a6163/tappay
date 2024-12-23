@@ -27,20 +27,7 @@ module Tappay
           redirect_url: options[:redirect_url],
           three_domain_secure: options[:three_domain_secure] || false,
           instalment: options[:instalment]
-        }.tap do |data|
-          data[:cardholder] = card_holder_data if options[:cardholder]
-        end
-      end
-
-      def card_holder_data
-        case options[:cardholder]
-        when CardHolder
-          options[:cardholder].to_h
-        when Hash
-          options[:cardholder]
-        else
-          raise ValidationError, "Invalid cardholder format"
-        end
+        }
       end
 
       def validate_options!
@@ -70,7 +57,8 @@ module Tappay
       def payment_data
         super.merge(
           prime: options[:prime],
-          remember: options[:remember] || false
+          remember: options[:remember] || false,
+          cardholder: card_holder_data
         )
       end
 
@@ -83,6 +71,17 @@ module Tappay
         required = [:prime, :cardholder]
         missing = required.select { |key| options[key].nil? }
         raise ValidationError, "Missing required options: #{missing.join(', ')}" if missing.any?
+      end
+
+      def card_holder_data
+        case options[:cardholder]
+        when CardHolder
+          options[:cardholder].to_h
+        when Hash
+          options[:cardholder]
+        else
+          raise ValidationError, "Invalid cardholder format"
+        end
       end
     end
 
