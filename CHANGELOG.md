@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.8] - 2024-12-23
+
+### Changed
+- Updated required fields validation for PayByPrime and PayByToken
+- Added details as required field for both PayByPrime and PayByToken
+- Made currency a required field for PayByToken and removed its default value
+- Removed order_number from required fields
+
 ## [0.2.7] - 2024-12-19
 
 ### Added
