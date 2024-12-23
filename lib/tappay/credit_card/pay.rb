@@ -2,11 +2,11 @@ module Tappay
   module CreditCard
     class Pay < Client
       def self.by_prime(options = {})
-        PayByPrime.new(options).execute
+        PayByPrime.new(options)
       end
 
       def self.by_token(options = {})
-        PayByToken.new(options).execute
+        PayByToken.new(options)
       end
     end
 
@@ -17,7 +17,8 @@ module Tappay
       end
 
       def execute
-        post(Tappay::Endpoints::CreditCard.pay_by_prime_url, payment_data)
+        response = post(Tappay::Endpoints::CreditCard.pay_by_prime_url, payment_data)
+        JSON.parse(response.body)
       end
 
       private
@@ -65,7 +66,8 @@ module Tappay
       end
 
       def execute
-        post(Tappay::Endpoints::CreditCard.pay_by_token_url, payment_data)
+        response = post(Tappay::Endpoints::CreditCard.pay_by_token_url, payment_data)
+        JSON.parse(response.body)
       end
 
       private

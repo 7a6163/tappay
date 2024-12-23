@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.11] - 2024-12-23
+
+### Changed
+- Refactored HTTP response handling in Client class
+- Modified Client#post to return raw response object
+- Added response parsing in PayByPrime and PayByToken execute methods
+- Improved error handling with better separation of concerns
+
+## [0.2.10] - 2024-12-23
+
+### Changed
+- Modified Pay.by_prime and Pay.by_token to return payment objects instead of executing them immediately
+- This change allows more flexibility in payment flow control and better error handling
+
 ## [0.2.9] - 2024-12-23
 
 ### Fixed

@@ -12,14 +12,15 @@ module Tappay
     end
 
     def post(url, data)
-      response = self.class.post(
+      @response = self.class.post(
         url,
         body: data.to_json,
         headers: headers,
         timeout: timeout
       )
 
-      handle_response(response)
+      validate_response
+      @response
     rescue HTTParty::Error => e
       raise ConnectionError, "HTTP Request failed: #{e.message}"
     end
@@ -37,29 +38,26 @@ module Tappay
       25 # seconds
     end
 
-    def handle_response(response)
-      case response.code
+    def validate_response
+      case @response.code
       when 200
-        parse_response(response)
+        data = parse_response
+        unless data['status'].zero?
+          raise APIError.new(data['status'], data['msg'])
+        end
       when 400
-        raise ValidationError, "Invalid request: #{response.body}"
+        raise ValidationError, "Invalid request: #{@response.body}"
       when 401
         raise ConfigurationError, "Authentication failed. Check your partner_key."
       when 404
-        raise ConnectionError, "API endpoint not found: #{response.request.last_uri}"
+        raise ConnectionError, "API endpoint not found: #{@response.request.last_uri}"
       else
-        raise ConnectionError, "HTTP Request failed with code #{response.code}: #{response.body}"
+        raise ConnectionError, "HTTP Request failed with code #{@response.code}: #{@response.body}"
       end
     end
 
-    def parse_response(response)
-      data = JSON.parse(response.body)
-      
-      unless data['status'].zero?
-        raise APIError.new(data['status'], data['msg'])
-      end
-      
-      data
+    def parse_response
+      JSON.parse(@response.body)
     rescue JSON::ParserError => e
       raise ConnectionError, "Invalid JSON response: #{e.message}"
     end
