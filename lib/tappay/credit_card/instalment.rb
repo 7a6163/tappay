@@ -21,7 +21,7 @@ module Tappay
       end
     end
 
-    class Instalment < InstalmentBase
+    class Instalment < PayBase
       def self.by_prime(options = {})
         InstalmentByPrime.new(options)
       end

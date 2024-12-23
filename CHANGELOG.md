@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.16] - 2024-12-23
+
+### Changed
+- Removed unnecessary execute method from Instalment class
+- Simplified class hierarchy for instalment payments
+
+## [0.2.15] - 2024-12-23
+
+### Fixed
+- Fixed inheritance structure of Instalment classes
+- Added proper error message when trying to use Instalment class directly
+- Updated InstalmentService to correctly use by_prime and by_token methods
+
 ## [0.2.13] - 2024-12-23
 
 ### Added
