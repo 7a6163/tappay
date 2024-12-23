@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.12] - 2024-12-23
+
+### Fixed
+- Simplified PayByPrime and PayByToken execute methods to return raw response
+- Updated response handling in client applications
+
 ## [0.2.11] - 2024-12-23
 
 ### Changed

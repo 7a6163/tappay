@@ -17,8 +17,7 @@ module Tappay
       end
 
       def execute
-        response = post(Tappay::Endpoints::CreditCard.pay_by_prime_url, payment_data)
-        JSON.parse(response.body)
+        post(Tappay::Endpoints::CreditCard.pay_by_prime_url, payment_data)
       end
 
       private
@@ -66,8 +65,7 @@ module Tappay
       end
 
       def execute
-        response = post(Tappay::Endpoints::CreditCard.pay_by_token_url, payment_data)
-        JSON.parse(response.body)
+        post(Tappay::Endpoints::CreditCard.pay_by_token_url, payment_data)
       end
 
       private
