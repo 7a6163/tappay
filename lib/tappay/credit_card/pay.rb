@@ -17,7 +17,7 @@ module Tappay
       end
 
       def execute
-        post(Tappay.configuration.prime_url, payment_data)
+        post(Tappay::Endpoints::CreditCard.pay_by_prime_url, payment_data)
       end
 
       private
@@ -64,7 +64,7 @@ module Tappay
       end
 
       def execute
-        post(Tappay.configuration.token_url, payment_data)
+        post(Tappay::Endpoints::CreditCard.pay_by_token_url, payment_data)
       end
 
       private

@@ -15,6 +15,7 @@ module Tappay
         phone_number: phone_number
       }
     end
+
     alias_method :as_json, :to_h
   end
 end
