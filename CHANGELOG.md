@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.30] - 2024-12-24
+
+### Fixed
+- Fixed cardholder parameter being added to payment data in base class
+
 ## [0.2.29] - 2024-12-24
 
 ### Fixed

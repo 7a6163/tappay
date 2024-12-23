@@ -27,9 +27,7 @@ module Tappay
           redirect_url: options[:redirect_url],
           three_domain_secure: options[:three_domain_secure] || false,
           instalment: options[:instalment]
-        }.tap do |data|
-          data[:cardholder] = card_holder_data if options[:cardholder]
-        end
+        }
       end
 
       def validate_options!
