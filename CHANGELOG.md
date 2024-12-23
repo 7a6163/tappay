@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.19] - 2024-12-23
+
+### Fixed
+- Fixed parameter name for cardholder in regular payments to match TapPay API requirements
+
+## [0.2.18] - 2024-12-23
+
+### Fixed
+- Fixed parameter name for cardholder in instalment payments to match TapPay API requirements
+
 ## [0.2.17] - 2024-12-23
 
 ### Changed

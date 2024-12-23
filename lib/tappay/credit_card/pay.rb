@@ -26,7 +26,7 @@ module Tappay
           order_number: options[:order_number],
           redirect_url: options[:redirect_url],
           three_domain_secure: options[:three_domain_secure] || false,
-          card_holder: card_holder_data
+          cardholder: card_holder_data
         }
       end
 
