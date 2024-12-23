@@ -1,25 +1,16 @@
 module Tappay
   module CreditCard
-    class Instalment < Pay
-      def self.by_prime(options = {})
-        new(options)
-      end
-
-      def self.by_token(options = {})
-        new(options)
-      end
-
+    class InstalmentBase < PayBase
       def initialize(options = {})
         super
         validate_instalment_options!
       end
 
-      private
+      protected
 
       def payment_data
         super.merge(
-          instalment: options[:instalment],
-          merchant_id: options[:merchant_id] || Tappay.configuration.instalment_merchant_id
+          instalment: options[:instalment]
         )
       end
 
@@ -27,6 +18,57 @@ module Tappay
         unless options[:instalment].to_i.between?(1, 12)
           raise ValidationError, "Invalid instalment value. Must be between 1 and 12"
         end
+      end
+    end
+
+    class Instalment < InstalmentBase
+      def self.by_prime(options = {})
+        InstalmentByPrime.new(options)
+      end
+
+      def self.by_token(options = {})
+        InstalmentByToken.new(options)
+      end
+    end
+
+    class InstalmentByPrime < InstalmentBase
+      def payment_data
+        super.merge(
+          prime: options[:prime],
+          remember: options[:remember] || false
+        )
+      end
+
+      def endpoint_url
+        Tappay::Endpoints::CreditCard.instalment_url
+      end
+
+      def validate_options!
+        super
+        required = [:prime]
+        missing = required.select { |key| options[key].nil? }
+        raise ValidationError, "Missing required options: #{missing.join(', ')}" if missing.any?
+      end
+    end
+
+    class InstalmentByToken < InstalmentBase
+      def payment_data
+        super.merge(
+          card_key: options[:card_key],
+          card_token: options[:card_token],
+          ccv_prime: options[:ccv_prime]
+        )
+      end
+
+      def endpoint_url
+        Tappay::Endpoints::CreditCard.instalment_url
+      end
+
+      def validate_options!
+        super
+        required = [:card_key, :card_token, :currency]
+        missing = required.select { |key| options[key].nil? }
+        raise ValidationError, "Missing required options: #{missing.join(', ')}" if missing.any?
       end
     end
   end
