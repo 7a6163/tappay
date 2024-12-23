@@ -32,6 +32,8 @@ module Tappay
       end
 
       def card_holder_data
+        return nil unless options[:cardholder]
+
         case options[:cardholder]
         when CardHolder
           options[:cardholder].to_h

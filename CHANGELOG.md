@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.28] - 2024-12-24
+
+### Fixed
+- Fixed NoMethodError when cardholder is nil
+
 ## [0.2.27] - 2024-12-24
 
 ### Fixed
