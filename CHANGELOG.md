@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.29] - 2024-12-24
+
+### Fixed
+- Fixed cardholder validation for instalment payments
+
 ## [0.2.28] - 2024-12-24
 
 ### Fixed

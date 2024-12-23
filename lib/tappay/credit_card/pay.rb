@@ -63,11 +63,12 @@ module Tappay
 
     class PayByPrime < PayBase
       def payment_data
-        super.merge(
+        data = super.merge(
           prime: options[:prime],
-          remember: options[:remember] || false,
-          cardholder: card_holder_data
+          remember: options[:remember] || false
         )
+        data[:cardholder] = card_holder_data if card_holder_data
+        data
       end
 
       def endpoint_url
