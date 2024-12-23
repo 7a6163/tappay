@@ -31,15 +31,15 @@ module Tappay
       end
 
       def card_holder_data
-        return unless options[:card_holder]
+        return unless options[:cardholder]
 
-        case options[:card_holder]
+        case options[:cardholder]
         when CardHolder
-          options[:card_holder].to_h
+          options[:cardholder].to_h
         when Hash
-          options[:card_holder]
+          options[:cardholder]
         else
-          raise ValidationError, "Invalid card_holder format"
+          raise ValidationError, "Invalid cardholder format"
         end
       end
 
@@ -64,7 +64,8 @@ module Tappay
       def payment_data
         super.merge(
           prime: options[:prime],
-          remember: options[:remember] || false
+          remember: options[:remember] || false,
+          cardholder: card_holder_data
         )
       end
 
