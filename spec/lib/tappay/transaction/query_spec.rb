@@ -4,7 +4,21 @@ require 'spec_helper'
 
 RSpec.describe Tappay::Transaction::Query do
   let(:order_number) { 'TEST123' }
-  let(:query) { described_class.new(order_number: order_number) }
+  let(:start_time) { Time.now.to_i - 86400 }
+  let(:end_time) { Time.now.to_i }
+  let(:query) { described_class.new(
+    order_number: order_number,
+    records_per_page: 50,
+    page: 0,
+    time: {
+      start_time: start_time,
+      end_time: end_time
+    },
+    order_by: {
+      attribute: 'time',
+      is_descending: true
+    }
+  ) }
   let(:client) { instance_double(Tappay::Client) }
   let(:query_url) { 'https://sandbox.tappaysdk.com/tpc/transaction/query' }
 
@@ -17,17 +31,27 @@ RSpec.describe Tappay::Transaction::Query do
     context 'when the response contains trade records' do
       let(:response) do
         {
+          'status' => 0,
+          'msg' => 'Success',
           'number_of_transactions' => 1,
           'trade_records' => [
             {
               'record_status' => 0,
               'rec_trade_id' => 'RECTRADE123',
               'amount' => 1000,
-              'status' => 0,
+              'currency' => 'TWD',
               'order_number' => order_number,
-              'acquirer' => 'NCCC',
+              'bank_transaction_id' => 'BANK123',
+              'auth_code' => 'AUTH123',
+              'cardholder' => {
+                'phone_number' => '0912345678',
+                'name' => 'Test User',
+                'email' => 'test@example.com'
+              },
+              'merchant_id' => 'MERCHANT123',
               'transaction_time' => '2024-12-23 13:50:33',
-              'bank_transaction_id' => 'BANK123'
+              'tsp' => true,
+              'card_identifier' => 'CARD123'
             }
           ]
         }
@@ -36,24 +60,48 @@ RSpec.describe Tappay::Transaction::Query do
       before do
         allow(client).to receive(:post).with(
           query_url,
-          { filters: { order_number: order_number } }
+          {
+            records_per_page: 50,
+            page: 0,
+            filters: {
+              order_number: order_number,
+              time: {
+                start_time: start_time,
+                end_time: end_time
+              }
+            },
+            order_by: {
+              attribute: 'time',
+              is_descending: true
+            }
+          }
         ).and_return(response)
       end
 
       it 'returns parsed transaction data' do
         result = query.execute
 
+        expect(result[:status]).to eq(0)
+        expect(result[:msg]).to eq('Success')
         expect(result[:number_of_transactions]).to eq(1)
         expect(result[:trade_records]).to be_an(Array)
         expect(result[:trade_records].first).to include(
           record_status: 0,
           rec_trade_id: 'RECTRADE123',
           amount: 1000,
-          status: 0,
+          currency: 'TWD',
           order_number: order_number,
-          acquirer: 'NCCC',
+          bank_transaction_id: 'BANK123',
+          auth_code: 'AUTH123',
+          merchant_id: 'MERCHANT123',
           transaction_time: '2024-12-23 13:50:33',
-          bank_transaction_id: 'BANK123'
+          tsp: true,
+          card_identifier: 'CARD123'
+        )
+        expect(result[:trade_records].first[:cardholder]).to include(
+          phone_number: '0912345678',
+          name: 'Test User',
+          email: 'test@example.com'
         )
       end
     end
@@ -61,6 +109,8 @@ RSpec.describe Tappay::Transaction::Query do
     context 'when the response contains no trade records' do
       let(:response) do
         {
+          'status' => 0,
+          'msg' => 'Success',
           'number_of_transactions' => 0,
           'trade_records' => []
         }
@@ -69,13 +119,29 @@ RSpec.describe Tappay::Transaction::Query do
       before do
         allow(client).to receive(:post).with(
           query_url,
-          { filters: { order_number: order_number } }
+          {
+            records_per_page: 50,
+            page: 0,
+            filters: {
+              order_number: order_number,
+              time: {
+                start_time: start_time,
+                end_time: end_time
+              }
+            },
+            order_by: {
+              attribute: 'time',
+              is_descending: true
+            }
+          }
         ).and_return(response)
       end
 
       it 'returns empty trade records' do
         result = query.execute
 
+        expect(result[:status]).to eq(0)
+        expect(result[:msg]).to eq('Success')
         expect(result[:number_of_transactions]).to eq(0)
         expect(result[:trade_records]).to be_empty
       end
@@ -84,6 +150,8 @@ RSpec.describe Tappay::Transaction::Query do
     context 'when trade_records is nil' do
       let(:response) do
         {
+          'status' => 0,
+          'msg' => 'Success',
           'number_of_transactions' => 0,
           'trade_records' => nil
         }
@@ -92,13 +160,29 @@ RSpec.describe Tappay::Transaction::Query do
       before do
         allow(client).to receive(:post).with(
           query_url,
-          { filters: { order_number: order_number } }
+          {
+            records_per_page: 50,
+            page: 0,
+            filters: {
+              order_number: order_number,
+              time: {
+                start_time: start_time,
+                end_time: end_time
+              }
+            },
+            order_by: {
+              attribute: 'time',
+              is_descending: true
+            }
+          }
         ).and_return(response)
       end
 
       it 'returns empty trade records' do
         result = query.execute
 
+        expect(result[:status]).to eq(0)
+        expect(result[:msg]).to eq('Success')
         expect(result[:number_of_transactions]).to eq(0)
         expect(result[:trade_records]).to be_empty
       end
