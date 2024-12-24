@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.32] - 2024-12-24
+
+### Fixed
+- Fixed cardholder parameter validation in InstalmentByPrime
+
+## [0.2.31] - 2024-12-24
+
+### Fixed
+- Fixed cardholder parameter being added to payment data in InstalmentByPrime
+
 ## [0.2.30] - 2024-12-24
 
 ### Fixed

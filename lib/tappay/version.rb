@@ -1,3 +1,3 @@
 module Tappay
-  VERSION = "0.2.30"
+  VERSION = "0.2.32"
 end

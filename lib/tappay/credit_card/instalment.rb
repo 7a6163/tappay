@@ -81,7 +81,7 @@ module Tappay
 
       def validate_options!
         super
-        required = [:prime]
+        required = [:prime, :cardholder]
         missing = required.select { |key| options[key].nil? }
         raise ValidationError, "Missing required options: #{missing.join(', ')}" if missing.any?
       end
