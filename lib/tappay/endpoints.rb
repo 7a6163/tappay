@@ -26,8 +26,12 @@ module Tappay
           "#{Endpoints.base_url}/tpc/transaction/refund"
         end
 
-        def instalment_url
+        def instalment_by_prime_url
           "#{Endpoints.base_url}/tpc/payment/pay-by-prime"
+        end
+
+        def instalment_by_token_url
+          "#{Endpoints.base_url}/tpc/payment/pay-by-token"
         end
       end
     end

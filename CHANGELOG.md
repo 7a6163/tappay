@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0] - 2024-12-24
+
+### Added
+- Separated instalment endpoints for prime and token payments
+- Added `instalment_by_prime_url` and `instalment_by_token_url` endpoints
+- Updated instalment classes to use their respective endpoints
+
 ## [0.2.32] - 2024-12-24
 
 ### Fixed
