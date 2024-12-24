@@ -1,6 +1,6 @@
 module Tappay
   module CreditCard
-    class PayBase < Client
+    class PaymentBase < Client
       def initialize(options = {})
         super
         validate_options!
@@ -28,6 +28,7 @@ module Tappay
           three_domain_secure: options[:three_domain_secure] || false
         }.tap do |data|
           data[:cardholder] = card_holder_data if options[:cardholder]
+          data[:instalment] = options[:instalment] if options[:instalment]
         end
       end
 
@@ -45,13 +46,31 @@ module Tappay
       end
 
       def validate_options!
-        required = [:amount, :details]
+        required = base_required_options + additional_required_options
         missing = required.select { |key| options[key].nil? }
         raise ValidationError, "Missing required options: #{missing.join(', ')}" if missing.any?
+        
+        validate_instalment! if options[:instalment]
+      end
+
+      private
+
+      def base_required_options
+        [:amount, :details]
+      end
+
+      def additional_required_options
+        []
+      end
+
+      def validate_instalment!
+        unless options[:instalment].to_i.between?(1, 12)
+          raise ValidationError, "Invalid instalment value. Must be between 1 and 12"
+        end
       end
     end
 
-    class Pay < PayBase
+    class Pay < PaymentBase
       def self.by_prime(options = {})
         PayByPrime.new(options)
       end
@@ -61,29 +80,26 @@ module Tappay
       end
     end
 
-    class PayByPrime < PayBase
+    class PayByPrime < PaymentBase
       def payment_data
-        data = super.merge(
+        super.merge(
           prime: options[:prime],
           remember: options[:remember] || false
         )
-        data[:cardholder] = card_holder_data if card_holder_data
-        data
       end
 
       def endpoint_url
-        Tappay::Endpoints::CreditCard.pay_by_prime_url
+        Tappay::Endpoints::CreditCard.payment_by_prime_url
       end
 
-      def validate_options!
-        super
-        required = [:prime]
-        missing = required.select { |key| options[key].nil? }
-        raise ValidationError, "Missing required options: #{missing.join(', ')}" if missing.any?
+      private
+
+      def additional_required_options
+        [:prime]
       end
     end
 
-    class PayByToken < PayBase
+    class PayByToken < PaymentBase
       def payment_data
         super.merge(
           card_key: options[:card_key],
@@ -92,14 +108,13 @@ module Tappay
       end
 
       def endpoint_url
-        Tappay::Endpoints::CreditCard.pay_by_token_url
+        Tappay::Endpoints::CreditCard.payment_by_token_url
       end
 
-      def validate_options!
-        super
-        required = [:card_key, :card_token, :currency]
-        missing = required.select { |key| options[key].nil? }
-        raise ValidationError, "Missing required options: #{missing.join(', ')}" if missing.any?
+      private
+
+      def additional_required_options
+        [:card_key, :card_token, :currency]
       end
     end
   end

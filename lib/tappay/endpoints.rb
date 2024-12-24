@@ -14,24 +14,18 @@ module Tappay
 
     module CreditCard
       class << self
-        def pay_by_prime_url
+        def payment_by_prime_url
           "#{Endpoints.base_url}/tpc/payment/pay-by-prime"
         end
+        alias_method :instalment_by_prime_url, :payment_by_prime_url
 
-        def pay_by_token_url
+        def payment_by_token_url
           "#{Endpoints.base_url}/tpc/payment/pay-by-token"
         end
+        alias_method :instalment_by_token_url, :payment_by_token_url
 
         def refund_url
           "#{Endpoints.base_url}/tpc/transaction/refund"
-        end
-
-        def instalment_by_prime_url
-          "#{Endpoints.base_url}/tpc/payment/pay-by-prime"
-        end
-
-        def instalment_by_token_url
-          "#{Endpoints.base_url}/tpc/payment/pay-by-token"
         end
       end
     end

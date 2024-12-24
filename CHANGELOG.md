@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0] - 2024-12-25
+
+### Changed
+- Refactored payment and instalment classes to share common base class
+- Unified payment endpoints for both regular and instalment payments
+- Removed redundant endpoint URLs in favor of unified payment endpoints
+- Made instalment parameter required for instalment payments (removed default value)
+
+### Breaking Changes
+- Renamed endpoint methods to `payment_by_prime_url` and `payment_by_token_url`
+- Instalment payments now require explicit instalment parameter
+- Removed default instalment value of 1
+
 ## [0.3.0] - 2024-12-24
 
 ### Added
