@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tappay_ruby (0.2.7)
+    tappay_ruby (0.4.0)
       httparty (~> 0.21.0)
 
 GEM
