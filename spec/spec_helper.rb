@@ -2,6 +2,19 @@
 
 require 'bundler/setup'
 require 'tappay'
+require 'simplecov'
+require 'simplecov-cobertura'
+
+SimpleCov.start do
+  add_filter '/spec/'
+  add_filter '/vendor/'
+  enable_coverage :branch
+  
+  SimpleCov.formatters = [
+    SimpleCov::Formatter::HTMLFormatter,
+    SimpleCov::Formatter::CoberturaFormatter
+  ]
+end
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
