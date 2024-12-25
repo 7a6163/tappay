@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
-require 'bundler/setup'
-require 'tappay'
 require 'simplecov'
 require 'simplecov-cobertura'
 
 SimpleCov.start do
+  track_files 'lib/**/*.rb'
   add_filter '/spec/'
   add_filter '/vendor/'
   enable_coverage :branch
@@ -15,6 +14,9 @@ SimpleCov.start do
     SimpleCov::Formatter::CoberturaFormatter
   ]
 end
+
+require 'bundler/setup'
+require 'tappay'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
