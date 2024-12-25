@@ -187,5 +187,98 @@ RSpec.describe Tappay::Transaction::Query do
         expect(result[:trade_records]).to be_empty
       end
     end
+
+    context 'when cardholder is nil' do
+      let(:response) do
+        {
+          'status' => 0,
+          'msg' => 'Success',
+          'number_of_transactions' => 1,
+          'trade_records' => [
+            {
+              'record_status' => 0,
+              'rec_trade_id' => 'RECTRADE123',
+              'amount' => 1000,
+              'currency' => 'TWD',
+              'order_number' => order_number,
+              'bank_transaction_id' => 'BANK123',
+              'auth_code' => 'AUTH123',
+              'cardholder' => nil,
+              'merchant_id' => 'MERCHANT123',
+              'transaction_time' => '2024-12-23 13:50:33',
+              'tsp' => true,
+              'card_identifier' => 'CARD123'
+            }
+          ]
+        }
+      end
+
+      before do
+        allow(client).to receive(:post).with(
+          query_url,
+          {
+            records_per_page: 50,
+            page: 0,
+            filters: {
+              order_number: order_number,
+              time: {
+                start_time: start_time,
+                end_time: end_time
+              }
+            },
+            order_by: {
+              attribute: 'time',
+              is_descending: true
+            }
+          }
+        ).and_return(response)
+      end
+
+      it 'returns nil for cardholder' do
+        result = query.execute
+        expect(result[:trade_records].first[:cardholder]).to be_nil
+      end
+    end
+  end
+
+  describe 'optional parameters' do
+    context 'without time and order_by' do
+      let(:simple_query) { described_class.new(order_number: order_number) }
+      let(:response) do
+        {
+          'status' => 0,
+          'msg' => 'Success',
+          'number_of_transactions' => 1,
+          'trade_records' => [
+            {
+              'record_status' => 0,
+              'rec_trade_id' => 'RECTRADE123',
+              'amount' => 1000,
+              'currency' => 'TWD',
+              'order_number' => order_number
+            }
+          ]
+        }
+      end
+
+      before do
+        allow(client).to receive(:post).with(
+          query_url,
+          {
+            records_per_page: 50,
+            page: 0,
+            filters: {
+              order_number: order_number
+            }
+          }
+        ).and_return(response)
+      end
+
+      it 'sends request without time and order_by parameters' do
+        result = simple_query.execute
+        expect(result[:status]).to eq(0)
+        expect(result[:trade_records].first[:order_number]).to eq(order_number)
+      end
+    end
   end
 end
