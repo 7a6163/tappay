@@ -10,4 +10,5 @@ gem "rake", "~> 13.0"
 group :test do
   gem 'simplecov', require: false
   gem 'simplecov-cobertura', require: false
+  gem 'webmock', require: false
 end
