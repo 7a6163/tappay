@@ -21,7 +21,7 @@ module Tappay
 
       validate_response
       @response
-    rescue HTTParty::Error => e
+    rescue HTTParty::Error, Timeout::Error, Net::OpenTimeout => e
       raise ConnectionError, "HTTP Request failed: #{e.message}"
     end
 

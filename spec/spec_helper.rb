@@ -2,6 +2,7 @@
 
 require 'simplecov'
 require 'simplecov-cobertura'
+require 'webmock/rspec'
 
 SimpleCov.start do
   track_files 'lib/**/*.rb'
