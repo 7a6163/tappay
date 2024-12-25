@@ -1,5 +1,20 @@
 # frozen_string_literal: true
 
+require 'simplecov'
+require 'simplecov-cobertura'
+
+SimpleCov.start do
+  track_files 'lib/**/*.rb'
+  add_filter '/spec/'
+  add_filter '/vendor/'
+  enable_coverage :branch
+  
+  SimpleCov.formatters = [
+    SimpleCov::Formatter::HTMLFormatter,
+    SimpleCov::Formatter::CoberturaFormatter
+  ]
+end
+
 require 'bundler/setup'
 require 'tappay'
 
