@@ -45,6 +45,7 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
       subject { concrete_class.new(options) }
 
       it 'includes all parameters in the payment data' do
+        Tappay.configure { |c| c.merchant_group_id = nil }
         data = subject.send(:payment_data)
         expect(data[:merchant_id]).to eq('custom_merchant')
         expect(data[:currency]).to eq('TWD')
@@ -78,11 +79,116 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
       end
     end
 
+    context 'with merchant_group_id' do
+      let(:options) { valid_options.merge(merchant_group_id: 'group_123') }
+
+      before do
+        Tappay.configure { |c| c.merchant_id = nil }
+      end
+
+      subject { concrete_class.new(options) }
+
+      it 'includes merchant_group_id and excludes merchant_id' do
+        data = subject.send(:payment_data)
+        expect(data[:merchant_group_id]).to eq('group_123')
+        expect(data).not_to have_key(:merchant_id)
+      end
+
+      it 'raises error when both merchant_group_id and merchant_id are set' do
+        options[:merchant_id] = 'merchant_123'
+        expect { subject.send(:payment_data) }
+          .to raise_error(Tappay::ValidationError, /cannot be used together/)
+      end
+
+      it 'raises error when both are set in configuration' do
+        Tappay.configure do |c|
+          c.merchant_group_id = 'group_123'
+          c.merchant_id = 'merchant_123'
+        end
+        expect { subject.send(:payment_data) }
+          .to raise_error(Tappay::ValidationError, /cannot be used together/)
+      end
+    end
+
+    context 'with merchant ID validation' do
+      before do
+        Tappay.configure do |c|
+          c.merchant_id = nil
+          c.merchant_group_id = nil
+        end
+      end
+
+      it 'raises error when neither merchant_id nor merchant_group_id is provided' do
+        expect { subject.send(:payment_data) }
+          .to raise_error(Tappay::ValidationError, /Either merchant_group_id or merchant_id must be provided/)
+      end
+
+      it 'raises error when both merchant_id and merchant_group_id are provided in options' do
+        options = valid_options.merge(
+          merchant_id: 'merchant_123',
+          merchant_group_id: 'group_123'
+        )
+        subject = concrete_class.new(options)
+        expect { subject.send(:payment_data) }
+          .to raise_error(Tappay::ValidationError, /cannot be used together/)
+      end
+
+      it 'ignores configuration when options are provided' do
+        Tappay.configure { |c| c.merchant_id = 'merchant_123' }
+        options = valid_options.merge(merchant_group_id: 'group_123')
+        subject = concrete_class.new(options)
+        data = subject.send(:payment_data)
+        expect(data[:merchant_group_id]).to eq('group_123')
+        expect(data).not_to have_key(:merchant_id)
+      end
+
+      it 'prefers merchant_group_id from options over configuration' do
+        Tappay.configure do |c|
+          c.merchant_group_id = 'group_456'
+        end
+        options = valid_options.merge(merchant_group_id: 'group_123')
+        subject = concrete_class.new(options)
+        data = subject.send(:payment_data)
+        expect(data[:merchant_group_id]).to eq('group_123')
+        expect(data).not_to have_key(:merchant_id)
+      end
+
+      it 'ignores configuration when options are provided' do
+        Tappay.configure { |c| c.merchant_id = 'merchant_123' }
+        options = valid_options.merge(merchant_group_id: 'group_123')
+        subject = concrete_class.new(options)
+        data = subject.send(:payment_data)
+        expect(data[:merchant_group_id]).to eq('group_123')
+        expect(data).not_to have_key(:merchant_id)
+      end
+    end
+
     context 'with default values' do
+      before do
+        Tappay.configure do |c|
+          c.merchant_group_id = nil
+          c.merchant_id = 'default_merchant'
+        end
+      end
+
       it 'uses configuration merchant_id' do
-        Tappay.configure { |c| c.merchant_id = 'default_merchant' }
         data = subject.send(:payment_data)
         expect(data[:merchant_id]).to eq('default_merchant')
+      end
+
+      it 'uses configuration merchant_group_id when available' do
+        Tappay.configure do |c|
+          c.merchant_id = nil
+          c.merchant_group_id = 'default_group'
+        end
+        data = subject.send(:payment_data)
+        expect(data[:merchant_group_id]).to eq('default_group')
+        expect(data).not_to have_key(:merchant_id)
+      end
+
+      it 'excludes merchant_group_id when not set' do
+        data = subject.send(:payment_data)
+        expect(data).not_to have_key(:merchant_group_id)
       end
 
       it 'uses TWD as default currency' do
