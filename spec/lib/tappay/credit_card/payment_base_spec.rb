@@ -37,7 +37,8 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
           order_number: 'ORDER123',
           three_domain_secure: true,
           cardholder: card_holder,
-          instalment: 3
+          instalment: 3,
+          payment_url: 'https://example.com/payment'
         )
       end
 
@@ -51,6 +52,7 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
         expect(data[:three_domain_secure]).to be true
         expect(data[:cardholder]).to eq(card_holder.to_h)
         expect(data[:instalment]).to eq(3)
+        expect(data[:payment_url]).to eq('https://example.com/payment')
       end
     end
 
