@@ -1,5 +1,6 @@
 # TapPay Ruby Gem
 
+![Gem Version](https://img.shields.io/gem/v/tappay_ruby)
 [![RSpec](https://github.com/7a6163/tappay/actions/workflows/rspec.yml/badge.svg)](https://github.com/7a6163/tappay/actions/workflows/rspec.yml)
 [![codecov](https://codecov.io/gh/7a6163/tappay/branch/main/graph/badge.svg)](https://codecov.io/gh/7a6163/tappay)
 
@@ -224,7 +225,7 @@ if result['status'] == 0
     card_token = result['card_secret']['card_token']
     # Store card_key and card_token securely for future payments
   end
-  
+
   # Handle payment URL if present (for 3D Secure, LINE Pay, JKO Pay)
   if result['payment_url']
     redirect_to result['payment_url']
