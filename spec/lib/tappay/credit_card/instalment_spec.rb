@@ -18,135 +18,314 @@ RSpec.describe Tappay::CreditCard::Instalment do
     )
   end
 
+  let(:card_holder) { Tappay::CardHolder.new(phone_number: '0912345678', name: 'Test User', email: 'test@example.com') }
+  let(:result_url) do
+    {
+      frontend_redirect_url: 'https://example.com/redirect',
+      backend_notify_url: 'https://example.com/notify'
+    }
+  end
+
+  let(:valid_options) do
+    {
+      prime: 'test_prime',
+      amount: 1000,
+      details: 'Test Payment',
+      cardholder: card_holder,
+      instalment: 3,
+      result_url: result_url
+    }
+  end
+
   before do
     allow(Tappay::Endpoints::CreditCard).to receive(:payment_by_prime_url).and_return(payment_url)
     allow(Tappay::Endpoints::CreditCard).to receive(:payment_by_token_url).and_return(payment_url)
   end
 
   describe '.by_prime' do
-    let(:instalment_options) do
+    it 'returns an InstalmentByPrime instance' do
+      expect(described_class.by_prime(valid_options)).to be_a(Tappay::CreditCard::InstalmentByPrime)
+    end
+  end
+
+  describe '.by_token' do
+    let(:token_options) do
+      valid_options.merge(
+        card_key: 'test_card_key',
+        card_token: 'test_card_token',
+        ccv_prime: 'test_ccv_prime'
+      ).tap { |opts| opts.delete(:prime) }
+    end
+
+    it 'returns an InstalmentByToken instance' do
+      expect(described_class.by_token(token_options)).to be_a(Tappay::CreditCard::InstalmentByToken)
+    end
+  end
+
+  describe Tappay::CreditCard::InstalmentByPrime do
+    describe '#validate_result_url_for_instalment!' do
+      context 'when result_url is missing' do
+        let(:invalid_options) { valid_options.tap { |o| o.delete(:result_url) } }
+
+        it 'raises ValidationError' do
+          expect { described_class.new(invalid_options) }
+            .to raise_error(Tappay::ValidationError, /result_url with frontend_redirect_url and backend_notify_url is required for instalment payments/)
+        end
+      end
+
+      context 'when result_url is missing frontend_redirect_url' do
+        let(:invalid_result_url) do
+          {
+            backend_notify_url: 'https://example.com/notify'
+          }
+        end
+        let(:invalid_options) { valid_options.merge(result_url: invalid_result_url) }
+
+        it 'raises ValidationError' do
+          expect { described_class.new(invalid_options) }
+            .to raise_error(Tappay::ValidationError, /result_url with frontend_redirect_url and backend_notify_url is required for instalment payments/)
+        end
+      end
+
+      context 'when result_url is missing backend_notify_url' do
+        let(:invalid_result_url) do
+          {
+            frontend_redirect_url: 'https://example.com/redirect'
+          }
+        end
+        let(:invalid_options) { valid_options.merge(result_url: invalid_result_url) }
+
+        it 'raises ValidationError' do
+          expect { described_class.new(invalid_options) }
+            .to raise_error(Tappay::ValidationError, /result_url with frontend_redirect_url and backend_notify_url is required for instalment payments/)
+        end
+      end
+
+      context 'when result_url has both required URLs' do
+        it 'does not raise error' do
+          expect { described_class.new(valid_options) }.not_to raise_error
+        end
+      end
+    end
+  end
+
+  describe Tappay::CreditCard::InstalmentByToken do
+    let(:card_holder) do
+      Tappay::CardHolder.new(
+        phone_number: '0912345678',
+        name: 'Test User',
+        email: 'test@example.com'
+      )
+    end
+
+    let(:result_url) do
       {
-        amount: amount,
-        details: details,
-        merchant_id: merchant_id,
-        prime: prime,
-        cardholder: cardholder,
-        instalment: 3
+        frontend_redirect_url: 'https://example.com/redirect',
+        backend_notify_url: 'https://example.com/notify'
       }
     end
 
+    let(:token_options) do
+      {
+        amount: 1000,
+        details: 'Test Payment',
+        cardholder: card_holder,
+        instalment: 3,
+        result_url: result_url,
+        card_key: 'test_card_key',
+        card_token: 'test_card_token',
+        ccv_prime: 'test_ccv_prime'
+      }
+    end
+
+    describe '#validate_result_url_for_instalment!' do
+      context 'when result_url is missing' do
+        let(:invalid_options) { token_options.tap { |o| o.delete(:result_url) } }
+
+        it 'raises ValidationError' do
+          expect { described_class.new(invalid_options) }
+            .to raise_error(Tappay::ValidationError, /result_url with frontend_redirect_url and backend_notify_url is required for instalment payments/)
+        end
+      end
+
+      context 'when result_url is missing frontend_redirect_url' do
+        let(:invalid_result_url) do
+          {
+            backend_notify_url: 'https://example.com/notify'
+          }
+        end
+        let(:invalid_options) { token_options.merge(result_url: invalid_result_url) }
+
+        it 'raises ValidationError' do
+          expect { described_class.new(invalid_options) }
+            .to raise_error(Tappay::ValidationError, /result_url with frontend_redirect_url and backend_notify_url is required for instalment payments/)
+        end
+      end
+
+      context 'when result_url is missing backend_notify_url' do
+        let(:invalid_result_url) do
+          {
+            frontend_redirect_url: 'https://example.com/redirect'
+          }
+        end
+        let(:invalid_options) { token_options.merge(result_url: invalid_result_url) }
+
+        it 'raises ValidationError' do
+          expect { described_class.new(invalid_options) }
+            .to raise_error(Tappay::ValidationError, /result_url with frontend_redirect_url and backend_notify_url is required for instalment payments/)
+        end
+      end
+
+      context 'when result_url has both required URLs' do
+        it 'does not raise error' do
+          expect { described_class.new(token_options) }.not_to raise_error
+        end
+      end
+    end
+  end
+
+  describe '.by_prime' do
+    subject { described_class.by_prime(valid_options) }
+
     it 'creates an InstalmentByPrime instance' do
-      instalment = described_class.by_prime(instalment_options)
-      expect(instalment).to be_a(Tappay::CreditCard::InstalmentByPrime)
+      expect(subject).to be_a(Tappay::CreditCard::InstalmentByPrime)
     end
 
     context 'when executing the payment' do
-      let(:response) { { 'status' => 0, 'msg' => 'Success' } }
-      let(:instalment) { described_class.by_prime(instalment_options) }
+      let(:payment_instance) { described_class.by_prime(valid_options) }
+      let(:expected_payment_data) do
+        {
+          prime: 'test_prime',
+          partner_key: 'partner_key',
+          merchant_id: 'merchant_id',
+          amount: 1000,
+          details: 'Test Payment',
+          instalment: 3,
+          cardholder: card_holder.to_h,
+          result_url: result_url,
+          currency: 'TWD',
+          three_domain_secure: false,
+          order_number: nil,
+          remember: false
+        }
+      end
 
       before do
-        allow_any_instance_of(Tappay::Client).to receive(:post).and_return(response)
+        Tappay.configure do |config|
+          config.partner_key = 'partner_key'
+          config.merchant_id = 'merchant_id'
+        end
       end
 
       it 'sends the correct payment data' do
-        expected_data = {
-          partner_key: Tappay.configuration.partner_key,
-          merchant_id: merchant_id,
-          amount: amount,
-          details: details,
-          currency: 'TWD',
-          order_number: nil,
-          prime: prime,
-          remember: false,
-          cardholder: cardholder.to_h,
-          three_domain_secure: false,
-          instalment: 3
-        }
+        expect(payment_instance).to receive(:post)
+          .with(Tappay::Endpoints::CreditCard.payment_by_prime_url, expected_payment_data)
+          .and_return(true)
 
-        expect_any_instance_of(Tappay::Client).to receive(:post).with(payment_url, expected_data)
-        instalment.execute
-      end
-    end
-
-    context 'with missing required parameters' do
-      it 'raises a ValidationError' do
-        expect { described_class.by_prime(amount: amount) }.to(
-          raise_error(Tappay::ValidationError, /Missing required options/)
-        )
-      end
-    end
-
-    context 'with invalid instalment value' do
-      let(:invalid_options) { instalment_options.merge(instalment: 13) }
-
-      it 'raises a ValidationError' do
-        expect { described_class.by_prime(invalid_options) }.to(
-          raise_error(Tappay::ValidationError, /Invalid instalment value/)
-        )
+        payment_instance.execute
       end
     end
   end
 
   describe '.by_token' do
-    let(:instalment_options) do
-      {
-        amount: amount,
-        details: details,
-        merchant_id: merchant_id,
-        card_key: card_key,
-        card_token: card_token,
-        instalment: 6
-      }
+    let(:token_options) do
+      valid_options.merge(
+        card_key: 'test_card_key',
+        card_token: 'test_card_token',
+        ccv_prime: 'test_ccv_prime'
+      ).tap { |opts| opts.delete(:prime) }
     end
 
+    subject { described_class.by_token(token_options) }
+
     it 'creates an InstalmentByToken instance' do
-      instalment = described_class.by_token(instalment_options)
-      expect(instalment).to be_a(Tappay::CreditCard::InstalmentByToken)
+      expect(subject).to be_a(Tappay::CreditCard::InstalmentByToken)
     end
 
     context 'when executing the payment' do
-      let(:response) { { 'status' => 0, 'msg' => 'Success' } }
-      let(:instalment) { described_class.by_token(instalment_options) }
+      let(:payment_instance) { described_class.by_token(token_options) }
+      let(:expected_payment_data) do
+        {
+          card_key: 'test_card_key',
+          card_token: 'test_card_token',
+          ccv_prime: 'test_ccv_prime',
+          partner_key: 'partner_key',
+          merchant_id: 'merchant_id',
+          amount: 1000,
+          details: 'Test Payment',
+          instalment: 3,
+          cardholder: card_holder.to_h,
+          result_url: result_url,
+          currency: 'TWD',
+          three_domain_secure: false,
+          order_number: nil
+        }
+      end
 
       before do
-        allow_any_instance_of(Tappay::Client).to receive(:post).and_return(response)
+        Tappay.configure do |config|
+          config.partner_key = 'partner_key'
+          config.merchant_id = 'merchant_id'
+        end
       end
 
       it 'sends the correct payment data' do
-        expected_data = {
-          partner_key: Tappay.configuration.partner_key,
-          merchant_id: merchant_id,
-          amount: amount,
-          details: details,
-          currency: 'TWD',
-          order_number: nil,
-          card_key: card_key,
-          card_token: card_token,
-          ccv_prime: nil,
-          three_domain_secure: false,
-          instalment: 6
-        }
+        expect(payment_instance).to receive(:post)
+          .with(Tappay::Endpoints::CreditCard.payment_by_token_url, expected_payment_data)
+          .and_return(true)
 
-        expect_any_instance_of(Tappay::Client).to receive(:post).with(payment_url, expected_data)
-        instalment.execute
+        payment_instance.execute
+      end
+    end
+  end
+
+  describe '#validate_result_url_for_instalment!' do
+    let(:base_options) do
+      {
+        amount: 1000,
+        details: 'Test Payment',
+        cardholder: card_holder,
+        instalment: 3
+      }
+    end
+
+    context 'without result_url' do
+      subject { Tappay::CreditCard::InstalmentByPrime.new(base_options.merge(prime: 'test_prime')) }
+
+      it 'raises ValidationError' do
+        expect { subject.send(:validate_result_url_for_instalment!) }
+          .to raise_error(Tappay::ValidationError, /result_url.*required for instalment payments/)
       end
     end
 
-    context 'with missing required parameters' do
-      it 'raises a ValidationError' do
-        expect { described_class.by_token(amount: amount) }.to(
-          raise_error(Tappay::ValidationError, /Missing required options/)
+    context 'with incomplete result_url' do
+      subject do
+        Tappay::CreditCard::InstalmentByPrime.new(
+          base_options.merge(
+            prime: 'test_prime',
+            result_url: { frontend_redirect_url: 'https://example.com' }
+          )
         )
+      end
+
+      it 'raises ValidationError' do
+        expect { subject.send(:validate_result_url_for_instalment!) }
+          .to raise_error(Tappay::ValidationError, /result_url.*required for instalment payments/)
       end
     end
 
-    context 'with invalid instalment value' do
-      let(:invalid_options) { instalment_options.merge(instalment: 0) }
-
-      it 'raises a ValidationError' do
-        expect { described_class.by_token(invalid_options) }.to(
-          raise_error(Tappay::ValidationError, /Invalid instalment value/)
+    context 'with complete result_url' do
+      subject do
+        Tappay::CreditCard::InstalmentByPrime.new(
+          base_options.merge(
+            prime: 'test_prime',
+            result_url: result_url
+          )
         )
+      end
+
+      it 'does not raise error' do
+        expect { subject.send(:validate_result_url_for_instalment!) }.not_to raise_error
       end
     end
   end

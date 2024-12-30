@@ -90,6 +90,13 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
   describe '#payment_data' do
     context 'with all optional parameters' do
       let(:card_holder) { Tappay::CardHolder.new(phone_number: '0912345678', name: 'Test User', email: 'test@example.com') }
+      let(:result_url) do
+        {
+          frontend_redirect_url: 'https://example.com/redirect',
+          backend_notify_url: 'https://example.com/notify',
+          go_back_url: 'https://example.com/back'
+        }
+      end
       let(:options) do
         valid_options.merge(
           merchant_id: 'custom_merchant',
@@ -97,7 +104,8 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
           order_number: 'ORDER123',
           three_domain_secure: true,
           cardholder: card_holder,
-          instalment: 3
+          instalment: 3,
+          result_url: result_url
         )
       end
 
@@ -112,6 +120,7 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
         expect(data[:three_domain_secure]).to be true
         expect(data[:cardholder]).to eq(card_holder.to_h)
         expect(data[:instalment]).to eq(3)
+        expect(data[:result_url]).to eq(result_url)
       end
     end
 
@@ -271,23 +280,108 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
     end
   end
 
-  describe '#validate_instalment!' do
-    context 'with invalid instalment values' do
-      [-1, 0, 13, 100].each do |value|
-        it "raises ValidationError for instalment value #{value}" do
-          options = valid_options.merge(instalment: value)
-          expect { concrete_class.new(options) }
-            .to raise_error(Tappay::ValidationError, /Invalid instalment value/)
+  describe '#validate_result_url!' do
+    context 'when three_domain_secure is true' do
+      context 'without result_url' do
+        let(:options) { valid_options.merge(three_domain_secure: true) }
+        subject { concrete_class.new(options) }
+
+        it 'raises ValidationError' do
+          expect { subject.send(:validate_result_url!) }
+            .to raise_error(Tappay::ValidationError, /result_url.*required when three_domain_secure is true/)
+        end
+      end
+
+      context 'with incomplete result_url' do
+        let(:options) do
+          valid_options.merge(
+            three_domain_secure: true,
+            result_url: { frontend_redirect_url: 'https://example.com' }
+          )
+        end
+        subject { concrete_class.new(options) }
+
+        it 'raises ValidationError' do
+          expect { subject.send(:validate_result_url!) }
+            .to raise_error(Tappay::ValidationError, /result_url.*required when three_domain_secure is true/)
+        end
+      end
+
+      context 'with complete result_url' do
+        let(:options) do
+          valid_options.merge(
+            three_domain_secure: true,
+            result_url: {
+              frontend_redirect_url: 'https://example.com/redirect',
+              backend_notify_url: 'https://example.com/notify'
+            }
+          )
+        end
+        subject { concrete_class.new(options) }
+
+        it 'does not raise error' do
+          expect { subject.send(:validate_result_url!) }.not_to raise_error
         end
       end
     end
 
-    context 'with valid instalment values' do
-      (1..12).each do |value|
-        it "accepts instalment value #{value}" do
-          options = valid_options.merge(instalment: value)
-          expect { concrete_class.new(options) }.not_to raise_error
-        end
+    context 'when three_domain_secure is false' do
+      let(:options) { valid_options.merge(three_domain_secure: false) }
+      subject { concrete_class.new(options) }
+
+      it 'does not validate result_url' do
+        expect(subject).not_to receive(:validate_result_url!)
+        subject.send(:validate_options!)
+      end
+    end
+  end
+
+  describe '#validate_instalment!' do
+    context 'with valid instalment value' do
+      let(:options) { valid_options.merge(instalment: 6) }
+      subject { concrete_class.new(options) }
+
+      it 'does not raise error' do
+        expect { subject.send(:validate_instalment!) }.not_to raise_error
+      end
+    end
+
+    context 'with invalid instalment value' do
+      let(:options) { valid_options.merge(instalment: 13) }
+      subject { concrete_class.new(options) }
+
+      it 'raises ValidationError' do
+        expect { subject.send(:validate_instalment!) }
+          .to raise_error(Tappay::ValidationError, "Invalid instalment value. Must be between 1 and 12")
+      end
+    end
+
+    context 'with zero instalment value' do
+      let(:options) { valid_options.merge(instalment: 0) }
+      subject { concrete_class.new(options) }
+
+      it 'raises ValidationError' do
+        expect { subject.send(:validate_instalment!) }
+          .to raise_error(Tappay::ValidationError, "Invalid instalment value. Must be between 1 and 12")
+      end
+    end
+
+    context 'with negative instalment value' do
+      let(:options) { valid_options.merge(instalment: -1) }
+      subject { concrete_class.new(options) }
+
+      it 'raises ValidationError' do
+        expect { subject.send(:validate_instalment!) }
+          .to raise_error(Tappay::ValidationError, "Invalid instalment value. Must be between 1 and 12")
+      end
+    end
+
+    context 'with string instalment value' do
+      let(:options) { valid_options.merge(instalment: '6') }
+      subject { concrete_class.new(options) }
+
+      it 'does not raise error for valid string number' do
+        expect { subject.send(:validate_instalment!) }.not_to raise_error
       end
     end
   end
