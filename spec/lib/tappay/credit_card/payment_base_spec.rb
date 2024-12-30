@@ -27,6 +27,66 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
 
   subject { concrete_class.new(valid_options) }
 
+  describe '#endpoint_url' do
+    let(:base_class) { Class.new(described_class) }
+    subject { base_class.new(valid_options) }
+
+    it 'raises NotImplementedError' do
+      expect { subject.send(:endpoint_url) }
+        .to raise_error(NotImplementedError, "Subclass must implement abstract method 'endpoint_url'")
+    end
+  end
+
+  describe '#additional_required_options' do
+    let(:base_class) { Class.new(described_class) }
+    subject { base_class.new(valid_options) }
+
+    it 'returns an empty array by default' do
+      expect(subject.send(:additional_required_options)).to eq([])
+    end
+  end
+
+  describe '#card_holder_data' do
+    context 'when cardholder is nil' do
+      let(:options) { valid_options.tap { |o| o.delete(:cardholder) } }
+      subject { concrete_class.new(options) }
+
+      it 'returns nil' do
+        expect(subject.send(:card_holder_data)).to be_nil
+      end
+    end
+
+    context 'when cardholder is a CardHolder instance' do
+      let(:card_holder) { Tappay::CardHolder.new(phone_number: '0912345678', name: 'Test User', email: 'test@example.com') }
+      let(:options) { valid_options.merge(cardholder: card_holder) }
+      subject { concrete_class.new(options) }
+
+      it 'returns cardholder hash' do
+        expect(subject.send(:card_holder_data)).to eq(card_holder.to_h)
+      end
+    end
+
+    context 'when cardholder is a Hash' do
+      let(:cardholder_hash) { { phone_number: '0912345678', name: 'Test User', email: 'test@example.com' } }
+      let(:options) { valid_options.merge(cardholder: cardholder_hash) }
+      subject { concrete_class.new(options) }
+
+      it 'returns the hash directly' do
+        expect(subject.send(:card_holder_data)).to eq(cardholder_hash)
+      end
+    end
+
+    context 'when cardholder is invalid' do
+      let(:options) { valid_options.merge(cardholder: 'invalid') }
+      subject { concrete_class.new(options) }
+
+      it 'raises ValidationError' do
+        expect { subject.send(:card_holder_data) }
+          .to raise_error(Tappay::ValidationError, /Invalid cardholder format/)
+      end
+    end
+  end
+
   describe '#payment_data' do
     context 'with all optional parameters' do
       let(:card_holder) { Tappay::CardHolder.new(phone_number: '0912345678', name: 'Test User', email: 'test@example.com') }
@@ -74,6 +134,16 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
       it 'raises ValidationError' do
         expect { subject.send(:payment_data) }
           .to raise_error(Tappay::ValidationError, /Invalid cardholder format/)
+      end
+    end
+
+    context 'without cardholder' do
+      let(:options) { valid_options.tap { |o| o.delete(:cardholder) } }
+      subject { concrete_class.new(options) }
+
+      it 'excludes cardholder from payment data' do
+        data = subject.send(:payment_data)
+        expect(data).not_to have_key(:cardholder)
       end
     end
 
