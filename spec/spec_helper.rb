@@ -8,6 +8,8 @@ SimpleCov.start do
   track_files 'lib/**/*.rb'
   add_filter '/spec/'
   add_filter '/vendor/'
+  add_filter 'lib/tappay/version.rb'
+  add_filter 'lib/tappay/endpoints.rb'
   enable_coverage :branch
   
   SimpleCov.formatters = [
