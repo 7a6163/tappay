@@ -27,6 +27,25 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
 
   subject { concrete_class.new(valid_options) }
 
+  describe '#endpoint_url' do
+    let(:base_class) { Class.new(described_class) }
+    subject { base_class.new(valid_options) }
+
+    it 'raises NotImplementedError' do
+      expect { subject.send(:endpoint_url) }
+        .to raise_error(NotImplementedError, "Subclass must implement abstract method 'endpoint_url'")
+    end
+  end
+
+  describe '#additional_required_options' do
+    let(:base_class) { Class.new(described_class) }
+    subject { base_class.new(valid_options) }
+
+    it 'returns an empty array by default' do
+      expect(subject.send(:additional_required_options)).to eq([])
+    end
+  end
+
   describe '#payment_data' do
     context 'with all optional parameters' do
       let(:card_holder) { Tappay::CardHolder.new(phone_number: '0912345678', name: 'Test User', email: 'test@example.com') }
