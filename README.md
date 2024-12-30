@@ -167,21 +167,35 @@ Both approaches are valid and will work the same way. The CardHolder object prov
 
 ## Payment URL
 
-The gem supports specifying a payment return URL for all payment methods. This URL is where the customer will be redirected after completing their payment, especially useful for 3D Secure transactions:
+When processing payments, the API response may include a `payment_url` field. This URL is used for redirecting users to complete their payment in scenarios such as:
 
+- 3D Secure verification
+- LINE Pay payment page
+- JKO Pay payment page
+
+Note: payment_url is not supported for:
+- Apple Pay
+- Google Pay
+- Samsung Pay
+
+Example of handling payment URL in response:
 ```ruby
 result = Tappay::CreditCard::Pay.by_prime(
   prime: 'prime_from_tappay_sdk',
   amount: 100,
-  order_number: 'ORDER-123',
-  payment_url: 'https://your-return-url.com'  # Customer will be redirected here after payment
+  order_number: 'ORDER-123'
 )
-```
 
-The payment_url parameter is optional but recommended for:
-- 3D Secure transactions
-- Better payment flow control
-- Enhanced user experience with proper return handling
+if result['status'] == 0
+  if result['payment_url']
+    # Redirect user to payment page for:
+    # - 3D Secure verification
+    # - LINE Pay payment
+    # - JKO Pay payment
+    redirect_to result['payment_url']
+  end
+end
+```
 
 ## Usage
 
@@ -198,8 +212,7 @@ result = Tappay::CreditCard::Pay.by_prime(
   currency: 'TWD',
   three_domain_secure: true,  # Enable 3D secure if needed
   remember: true,  # Set to true if you want to store the card for future payments
-  card_holder: card_holder,  # Optional cardholder information
-  payment_url: 'https://your-return-url.com'  # Optional payment return URL
+  card_holder: card_holder  # Optional cardholder information
 )
 
 if result['status'] == 0
@@ -210,6 +223,11 @@ if result['status'] == 0
     card_key = result['card_secret']['card_key']
     card_token = result['card_secret']['card_token']
     # Store card_key and card_token securely for future payments
+  end
+  
+  # Handle payment URL if present (for 3D Secure, LINE Pay, JKO Pay)
+  if result['payment_url']
+    redirect_to result['payment_url']
   end
 end
 ```
@@ -227,8 +245,7 @@ result = Tappay::CreditCard::Pay.by_token(
   order_number: 'ORDER-124',
   currency: 'TWD',
   three_domain_secure: true,  # Enable 3D secure if needed
-  card_holder: card_holder,  # Optional cardholder information
-  payment_url: 'https://your-return-url.com'  # Optional payment return URL
+  card_holder: card_holder  # Optional cardholder information
 )
 
 if result['status'] == 0
@@ -245,7 +262,6 @@ payment = Tappay::CreditCard::Instalment.new(
   amount: 10000,
   instalment: 6,  # 6 monthly installments
   details: 'Product description',
-  payment_url: 'https://your-return-url.com',  # Optional payment return URL
   cardholder: {
     phone_number: '+886923456789',
     name: 'John Doe',
@@ -261,6 +277,11 @@ begin
     number_of_instalments = instalment_info['number_of_instalments']
     first_payment = instalment_info['first_payment']
     each_payment = instalment_info['each_payment']
+
+    # Handle payment URL if present (for 3D Secure)
+    if result['payment_url']
+      redirect_to result['payment_url']
+    end
   end
 rescue Tappay::PaymentError => e
   # Handle payment error

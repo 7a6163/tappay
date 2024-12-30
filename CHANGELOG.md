@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.1] - 2024-12-30
+
+### Changed
+- Removed `payment_url` from request parameters as it should only be handled in API response
+- Updated documentation to clarify `payment_url` usage in 3D Secure, LINE Pay, and JKO Pay scenarios
+
 ## [0.5.0] - 2024-12-30
 
 ### Added
