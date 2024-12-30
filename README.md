@@ -151,7 +151,6 @@ result = Tappay::CreditCard::Pay.by_prime(
   amount: 100,
   order_number: 'ORDER-123',
   currency: 'TWD',
-  redirect_url: 'https://your-site.com/return',
   three_domain_secure: true,  # Enable 3D secure if needed
   remember: true,  # Set to true if you want to store the card for future payments
   card_holder: card_holder  # Optional cardholder information
@@ -181,7 +180,6 @@ result = Tappay::CreditCard::Pay.by_token(
   amount: 100,
   order_number: 'ORDER-124',
   currency: 'TWD',
-  redirect_url: 'https://your-site.com/return',
   three_domain_secure: true,  # Enable 3D secure if needed
   card_holder: card_holder  # Optional cardholder information
 )

@@ -55,7 +55,6 @@ RSpec.describe Tappay::CreditCard::Pay do
           details: details,
           currency: 'TWD',
           order_number: nil,
-          redirect_url: nil,
           prime: prime,
           remember: false,
           cardholder: cardholder.to_h,
@@ -109,7 +108,6 @@ RSpec.describe Tappay::CreditCard::Pay do
           details: details,
           currency: 'TWD',
           order_number: nil,
-          redirect_url: nil,
           card_key: card_key,
           card_token: card_token,
           three_domain_secure: false
