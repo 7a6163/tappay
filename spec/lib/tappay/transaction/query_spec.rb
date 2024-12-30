@@ -33,6 +33,9 @@ RSpec.describe Tappay::Transaction::Query do
         {
           'status' => 0,
           'msg' => 'Success',
+          'records_per_page' => 50,
+          'page' => 0,
+          'total_page_count' => 1,
           'number_of_transactions' => 1,
           'trade_records' => [
             {
@@ -83,6 +86,9 @@ RSpec.describe Tappay::Transaction::Query do
 
         expect(result[:status]).to eq(0)
         expect(result[:msg]).to eq('Success')
+        expect(result[:records_per_page]).to eq(50)
+        expect(result[:page]).to eq(0)
+        expect(result[:total_page_count]).to eq(1)
         expect(result[:number_of_transactions]).to eq(1)
         expect(result[:trade_records]).to be_an(Array)
         expect(result[:trade_records].first).to include(
@@ -111,6 +117,9 @@ RSpec.describe Tappay::Transaction::Query do
         {
           'status' => 0,
           'msg' => 'Success',
+          'records_per_page' => 50,
+          'page' => 0,
+          'total_page_count' => 1,
           'number_of_transactions' => 0,
           'trade_records' => []
         }
@@ -142,6 +151,9 @@ RSpec.describe Tappay::Transaction::Query do
 
         expect(result[:status]).to eq(0)
         expect(result[:msg]).to eq('Success')
+        expect(result[:records_per_page]).to eq(50)
+        expect(result[:page]).to eq(0)
+        expect(result[:total_page_count]).to eq(1)
         expect(result[:number_of_transactions]).to eq(0)
         expect(result[:trade_records]).to be_empty
       end
@@ -152,6 +164,9 @@ RSpec.describe Tappay::Transaction::Query do
         {
           'status' => 0,
           'msg' => 'Success',
+          'records_per_page' => 50,
+          'page' => 0,
+          'total_page_count' => 1,
           'number_of_transactions' => 0,
           'trade_records' => nil
         }
@@ -183,6 +198,9 @@ RSpec.describe Tappay::Transaction::Query do
 
         expect(result[:status]).to eq(0)
         expect(result[:msg]).to eq('Success')
+        expect(result[:records_per_page]).to eq(50)
+        expect(result[:page]).to eq(0)
+        expect(result[:total_page_count]).to eq(1)
         expect(result[:number_of_transactions]).to eq(0)
         expect(result[:trade_records]).to be_empty
       end
@@ -193,6 +211,9 @@ RSpec.describe Tappay::Transaction::Query do
         {
           'status' => 0,
           'msg' => 'Success',
+          'records_per_page' => 50,
+          'page' => 0,
+          'total_page_count' => 1,
           'number_of_transactions' => 1,
           'trade_records' => [
             {
@@ -248,6 +269,9 @@ RSpec.describe Tappay::Transaction::Query do
         {
           'status' => 0,
           'msg' => 'Success',
+          'records_per_page' => 50,
+          'page' => 0,
+          'total_page_count' => 1,
           'number_of_transactions' => 1,
           'trade_records' => [
             {

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.1] - 2024-12-30
+
+### Changed
+- Enhanced transaction query response to include additional fields:
+  - records_per_page
+  - page
+  - total_page_count
+  - number_of_transactions
+
 ## [0.4.0] - 2024-12-25
 
 ### Changed
