@@ -11,6 +11,13 @@ RSpec.describe Tappay::CreditCard::InstalmentByToken do
     )
   end
 
+  let(:result_url) do
+    {
+      frontend_redirect_url: 'https://example.com/redirect',
+      backend_notify_url: 'https://example.com/notify'
+    }
+  end
+
   let(:valid_options) do
     {
       amount: 100,
@@ -19,7 +26,8 @@ RSpec.describe Tappay::CreditCard::InstalmentByToken do
       card_token: 'test_card_token',
       ccv_prime: 'test_ccv_prime',
       cardholder: card_holder,
-      instalment: 3
+      instalment: 3,
+      result_url: result_url
     }
   end
 

@@ -61,6 +61,7 @@ module Tappay
           end
           data[:cardholder] = card_holder_data if options[:cardholder]
           data[:instalment] = options[:instalment] if options[:instalment]
+          data[:result_url] = options[:result_url] if options[:result_url]
         end
       end
 
@@ -83,6 +84,7 @@ module Tappay
         raise ValidationError, "Missing required options: #{missing.join(', ')}" if missing.any?
 
         validate_instalment! if options[:instalment]
+        validate_result_url! if options[:three_domain_secure]
       end
 
       private
@@ -99,6 +101,14 @@ module Tappay
         unless options[:instalment].to_i.between?(1, 12)
           raise ValidationError, "Invalid instalment value. Must be between 1 and 12"
         end
+      end
+
+      def validate_result_url!
+        return if options[:result_url] && 
+                 options[:result_url][:frontend_redirect_url] && 
+                 options[:result_url][:backend_notify_url]
+
+        raise ValidationError, "result_url with frontend_redirect_url and backend_notify_url is required when three_domain_secure is true"
       end
     end
 

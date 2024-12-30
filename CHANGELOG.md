@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.0] - 2024-12-31
+
+### Added
+- Added validation for `result_url` in credit card payments
+- Required `result_url` with both `frontend_redirect_url` and `backend_notify_url` for 3D Secure transactions
+- Required `result_url` with both `frontend_redirect_url` and `backend_notify_url` for instalment payments
+
+### Changed
+- Improved test coverage to 100% for both line and branch coverage
+- Enhanced error messages for URL validation
+
 ## [0.5.1] - 2024-12-30
 
 ### Changed

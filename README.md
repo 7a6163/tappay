@@ -198,6 +198,24 @@ if result['status'] == 0
 end
 ```
 
+## URL Properties
+
+The `result_url` (JSONObject) property is required when using LINE Pay, JKOPAY, 悠遊付, Atome, Pi錢包, 全盈支付, or when three_domain_secure is true. It contains the following URL fields:
+
+```json
+{
+  "frontend_redirect_url": "https://example.com/redirect",  // Required - URL where consumer will be redirected after completing the transaction
+  "backend_notify_url": "https://example.com/notify",      // Required - URL where your server receives transaction results (only port 443)
+  "go_back_url": "https://example.com/back"               // Optional - URL for 3D verification error cases (E.SUN, Cathay United, Taishin banks)
+}
+```
+
+- `frontend_redirect_url` (String): After the consumer completes the transaction process in LINE Pay, JKOPAY, 悠遊付, Atome, Pi錢包, 全盈支付, or 3D verification, they will be redirected to this frontend URL. Must start with https.
+
+- `backend_notify_url` (String): URL where your server receives transaction results. Must start with https and only supports port 443.
+
+- `go_back_url` (String): For 3D verification transactions, this URL is used when consumers are redirected to the TapPay Error page due to improper operation. This scenario only occurs with E.SUN Bank, Cathay United Bank, and Taishin Bank. You can define this URL in the transaction request or set it in TapPay Portal > Developer Content > System Settings > Redirect Link Settings. It's strongly recommended to define this field for 3D transactions to ensure consumers can return to complete the transaction or view results.
+
 ## Usage
 
 ### Pay by Prime
@@ -323,6 +341,36 @@ rescue Tappay::ValidationError => e
   # Handle validation error
   puts e.message
 end
+```
+
+### Example Usage with result_url
+
+```ruby
+# Example of payment with result_url for LINE Pay
+result = Tappay::LinePay::Pay.create(
+  prime: 'prime_from_tappay_sdk',
+  amount: 100,
+  merchant_id: 'your_merchant_id',
+  details: 'Product Item',
+  result_url: {
+    frontend_redirect_url: 'https://example.com/payment/complete',
+    backend_notify_url: 'https://example.com/payment/notify',
+    go_back_url: 'https://example.com/payment/error'
+  }
+)
+
+# Example of payment with result_url for 3D verification
+result = Tappay::CreditCard::Pay.by_prime(
+  prime: 'prime_from_tappay_sdk',
+  amount: 100,
+  merchant_id: 'your_merchant_id',
+  three_domain_secure: true,
+  result_url: {
+    frontend_redirect_url: 'https://example.com/3d/complete',
+    backend_notify_url: 'https://example.com/3d/notify',
+    go_back_url: 'https://example.com/3d/error'
+  }
+)
 ```
 
 ## Development

@@ -26,10 +26,23 @@ module Tappay
         Tappay::Endpoints::CreditCard.payment_by_prime_url
       end
 
+      def validate_options!
+        super
+        validate_result_url_for_instalment!
+      end
+
       private
 
       def additional_required_options
         [:prime, :cardholder, :instalment]
+      end
+
+      def validate_result_url_for_instalment!
+        return if options[:result_url] && 
+                 options[:result_url][:frontend_redirect_url] && 
+                 options[:result_url][:backend_notify_url]
+
+        raise ValidationError, "result_url with frontend_redirect_url and backend_notify_url is required for instalment payments"
       end
     end
 
@@ -50,10 +63,23 @@ module Tappay
         Tappay::Endpoints::CreditCard.payment_by_token_url
       end
 
+      def validate_options!
+        super
+        validate_result_url_for_instalment!
+      end
+
       private
 
       def additional_required_options
         [:card_key, :card_token, :instalment]
+      end
+
+      def validate_result_url_for_instalment!
+        return if options[:result_url] && 
+                 options[:result_url][:frontend_redirect_url] && 
+                 options[:result_url][:backend_notify_url]
+
+        raise ValidationError, "result_url with frontend_redirect_url and backend_notify_url is required for instalment payments"
       end
     end
   end
