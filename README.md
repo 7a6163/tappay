@@ -52,11 +52,38 @@ Tappay.configure do |config|
   # Common settings
   config.partner_key = 'your_partner_key'.freeze
   config.app_id = 'your_app_id'.freeze
+
+  # Merchant settings (use either merchant_id or merchant_group_id, not both)
   config.merchant_id = 'your_merchant_id'.freeze
+  # OR
+  config.merchant_group_id = 'your_merchant_group_id'.freeze
+
   config.instalment_merchant_id = 'your_instalment_merchant_id'.freeze
   config.currency = 'TWD'.freeze
   config.vat_number = 'your_vat_number'.freeze
 end
+```
+
+### Merchant ID Configuration
+
+The gem supports two types of merchant identification:
+1. `merchant_id`: Individual merchant ID
+2. `merchant_group_id`: Group merchant ID
+
+Important rules:
+- You can set either `merchant_id` or `merchant_group_id` in the configuration, but not both
+- When making a payment, you can override the configured merchant ID by providing either `merchant_id` or `merchant_group_id` in the payment options
+- If you provide merchant ID in the payment options, it will take precedence over any configuration
+
+Example of overriding merchant ID in payment:
+```ruby
+# Using merchant_group_id in payment options
+result = Tappay::CreditCard::Pay.by_prime(
+  prime: 'prime_from_tappay_sdk',
+  amount: 100,
+  merchant_group_id: 'group_123',  # This will be used instead of configured merchant_id
+  order_number: 'ORDER-123'
+)
 ```
 
 ### 2. Using Environment Variables
@@ -138,6 +165,24 @@ result = Tappay::CreditCard::Pay.by_prime(
 
 Both approaches are valid and will work the same way. The CardHolder object provides a more structured way to handle cardholder information and includes validation.
 
+## Payment URL
+
+The gem supports specifying a payment return URL for all payment methods. This URL is where the customer will be redirected after completing their payment, especially useful for 3D Secure transactions:
+
+```ruby
+result = Tappay::CreditCard::Pay.by_prime(
+  prime: 'prime_from_tappay_sdk',
+  amount: 100,
+  order_number: 'ORDER-123',
+  payment_url: 'https://your-return-url.com'  # Customer will be redirected here after payment
+)
+```
+
+The payment_url parameter is optional but recommended for:
+- 3D Secure transactions
+- Better payment flow control
+- Enhanced user experience with proper return handling
+
 ## Usage
 
 ### Pay by Prime
@@ -153,7 +198,8 @@ result = Tappay::CreditCard::Pay.by_prime(
   currency: 'TWD',
   three_domain_secure: true,  # Enable 3D secure if needed
   remember: true,  # Set to true if you want to store the card for future payments
-  card_holder: card_holder  # Optional cardholder information
+  card_holder: card_holder,  # Optional cardholder information
+  payment_url: 'https://your-return-url.com'  # Optional payment return URL
 )
 
 if result['status'] == 0
@@ -181,7 +227,8 @@ result = Tappay::CreditCard::Pay.by_token(
   order_number: 'ORDER-124',
   currency: 'TWD',
   three_domain_secure: true,  # Enable 3D secure if needed
-  card_holder: card_holder  # Optional cardholder information
+  card_holder: card_holder,  # Optional cardholder information
+  payment_url: 'https://your-return-url.com'  # Optional payment return URL
 )
 
 if result['status'] == 0
@@ -198,6 +245,7 @@ payment = Tappay::CreditCard::Instalment.new(
   amount: 10000,
   instalment: 6,  # 6 monthly installments
   details: 'Product description',
+  payment_url: 'https://your-return-url.com',  # Optional payment return URL
   cardholder: {
     phone_number: '+886923456789',
     name: 'John Doe',
