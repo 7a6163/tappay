@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.2] - 2024-12-30
+
+### Changed
+- Changed `redirect_url` to `payment_url` in payment data
+- Made `payment_url` optional in payment requests
+
 ## [0.4.1] - 2024-12-30
 
 ### Changed

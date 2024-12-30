@@ -24,11 +24,11 @@ module Tappay
           details: options[:details],
           currency: options[:currency] || 'TWD',
           order_number: options[:order_number],
-          redirect_url: options[:redirect_url],
           three_domain_secure: options[:three_domain_secure] || false
         }.tap do |data|
           data[:cardholder] = card_holder_data if options[:cardholder]
           data[:instalment] = options[:instalment] if options[:instalment]
+          data[:payment_url] = options[:payment_url] if options[:payment_url]
         end
       end
 

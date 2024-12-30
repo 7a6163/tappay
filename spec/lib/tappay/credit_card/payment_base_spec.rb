@@ -33,12 +33,12 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
       let(:options) do
         valid_options.merge(
           merchant_id: 'custom_merchant',
-          currency: 'USD',
+          currency: 'TWD',
           order_number: 'ORDER123',
-          redirect_url: 'https://example.com/callback',
           three_domain_secure: true,
           cardholder: card_holder,
-          instalment: 3
+          instalment: 3,
+          payment_url: 'https://example.com/payment'
         )
       end
 
@@ -47,12 +47,12 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
       it 'includes all parameters in the payment data' do
         data = subject.send(:payment_data)
         expect(data[:merchant_id]).to eq('custom_merchant')
-        expect(data[:currency]).to eq('USD')
+        expect(data[:currency]).to eq('TWD')
         expect(data[:order_number]).to eq('ORDER123')
-        expect(data[:redirect_url]).to eq('https://example.com/callback')
         expect(data[:three_domain_secure]).to be true
         expect(data[:cardholder]).to eq(card_holder.to_h)
         expect(data[:instalment]).to eq(3)
+        expect(data[:payment_url]).to eq('https://example.com/payment')
       end
     end
 
