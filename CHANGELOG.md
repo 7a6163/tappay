@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.5.0] - 2024-12-30
+
+### Added
+- Added support for `merchant_group_id` in payment requests (mutually exclusive with `merchant_id`)
+- Updated API version to v3
+
+### Changed
+- Made `merchant_group_id` and `merchant_id` mutually exclusive, will raise error if both are provided
+- Requires either `merchant_id` or `merchant_group_id` to be set
+
 ## [0.4.2] - 2024-12-30
 
 ### Changed

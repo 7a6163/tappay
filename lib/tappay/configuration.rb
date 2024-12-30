@@ -1,11 +1,11 @@
 module Tappay
   class Configuration
-    attr_accessor :partner_key, :merchant_id, :instalment_merchant_id, :app_id, :currency, :vat_number
+    attr_accessor :partner_key, :merchant_id, :merchant_group_id, :instalment_merchant_id, :app_id, :currency, :vat_number
     attr_writer :api_version
 
     def initialize
       @mode = :sandbox
-      @api_version = '2'
+      @api_version = '3'
     end
 
     def api_version
