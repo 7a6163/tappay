@@ -61,7 +61,6 @@ module Tappay
           end
           data[:cardholder] = card_holder_data if options[:cardholder]
           data[:instalment] = options[:instalment] if options[:instalment]
-          data[:payment_url] = options[:payment_url] if options[:payment_url]
         end
       end
 
