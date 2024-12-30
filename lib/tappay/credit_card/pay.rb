@@ -17,13 +17,31 @@ module Tappay
       end
 
       def payment_data
-        merchant_group_id = options[:merchant_group_id] || Tappay.configuration.merchant_group_id
-        merchant_id = options[:merchant_id] || Tappay.configuration.merchant_id
-
-        if merchant_group_id && merchant_id
+        # Check configuration conflicts first
+        if Tappay.configuration.merchant_group_id && Tappay.configuration.merchant_id
           raise Tappay::ValidationError, "merchant_group_id and merchant_id cannot be used together"
         end
 
+        # Get values from options
+        opt_group_id = options[:merchant_group_id]
+        opt_merchant_id = options[:merchant_id]
+
+        # Check for conflicts in options
+        if opt_group_id && opt_merchant_id
+          raise Tappay::ValidationError, "merchant_group_id and merchant_id cannot be used together"
+        end
+
+        # If options has any ID, use it exclusively
+        if opt_group_id || opt_merchant_id
+          merchant_group_id = opt_group_id
+          merchant_id = opt_merchant_id
+        else
+          # If no options, use configuration
+          merchant_group_id = Tappay.configuration.merchant_group_id
+          merchant_id = Tappay.configuration.merchant_id
+        end
+
+        # Check if at least one is provided
         unless merchant_group_id || merchant_id
           raise Tappay::ValidationError, "Either merchant_group_id or merchant_id must be provided"
         end

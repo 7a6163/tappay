@@ -81,11 +81,11 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
 
     context 'with merchant_group_id' do
       let(:options) { valid_options.merge(merchant_group_id: 'group_123') }
-      
+
       before do
         Tappay.configure { |c| c.merchant_id = nil }
       end
-      
+
       subject { concrete_class.new(options) }
 
       it 'includes merchant_group_id and excludes merchant_id' do
@@ -110,9 +110,62 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
       end
     end
 
+    context 'with merchant ID validation' do
+      before do
+        Tappay.configure do |c|
+          c.merchant_id = nil
+          c.merchant_group_id = nil
+        end
+      end
+
+      it 'raises error when neither merchant_id nor merchant_group_id is provided' do
+        expect { subject.send(:payment_data) }
+          .to raise_error(Tappay::ValidationError, /Either merchant_group_id or merchant_id must be provided/)
+      end
+
+      it 'raises error when both merchant_id and merchant_group_id are provided in options' do
+        options = valid_options.merge(
+          merchant_id: 'merchant_123',
+          merchant_group_id: 'group_123'
+        )
+        subject = concrete_class.new(options)
+        expect { subject.send(:payment_data) }
+          .to raise_error(Tappay::ValidationError, /cannot be used together/)
+      end
+
+      it 'ignores configuration when options are provided' do
+        Tappay.configure { |c| c.merchant_id = 'merchant_123' }
+        options = valid_options.merge(merchant_group_id: 'group_123')
+        subject = concrete_class.new(options)
+        data = subject.send(:payment_data)
+        expect(data[:merchant_group_id]).to eq('group_123')
+        expect(data).not_to have_key(:merchant_id)
+      end
+
+      it 'prefers merchant_group_id from options over configuration' do
+        Tappay.configure do |c|
+          c.merchant_group_id = 'group_456'
+        end
+        options = valid_options.merge(merchant_group_id: 'group_123')
+        subject = concrete_class.new(options)
+        data = subject.send(:payment_data)
+        expect(data[:merchant_group_id]).to eq('group_123')
+        expect(data).not_to have_key(:merchant_id)
+      end
+
+      it 'ignores configuration when options are provided' do
+        Tappay.configure { |c| c.merchant_id = 'merchant_123' }
+        options = valid_options.merge(merchant_group_id: 'group_123')
+        subject = concrete_class.new(options)
+        data = subject.send(:payment_data)
+        expect(data[:merchant_group_id]).to eq('group_123')
+        expect(data).not_to have_key(:merchant_id)
+      end
+    end
+
     context 'with default values' do
       before do
-        Tappay.configure do |c| 
+        Tappay.configure do |c|
           c.merchant_group_id = nil
           c.merchant_id = 'default_merchant'
         end
@@ -124,7 +177,7 @@ RSpec.describe Tappay::CreditCard::PaymentBase do
       end
 
       it 'uses configuration merchant_group_id when available' do
-        Tappay.configure do |c| 
+        Tappay.configure do |c|
           c.merchant_id = nil
           c.merchant_group_id = 'default_group'
         end
