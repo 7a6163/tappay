@@ -14,10 +14,13 @@ module Tappay
       def execute
         client = Tappay::Client.new
         response = client.post(Endpoints::Transaction.query_url, request_params)
-        
+
         {
           status: response['status'],
           msg: response['msg'],
+          records_per_page: response['records_per_page'],
+          page: response['page'],
+          total_page_count: response['total_page_count'],
           number_of_transactions: response['number_of_transactions'],
           trade_records: parse_trade_records(response['trade_records'])
         }

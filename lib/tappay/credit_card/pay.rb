@@ -49,7 +49,7 @@ module Tappay
         required = base_required_options + additional_required_options
         missing = required.select { |key| options[key].nil? }
         raise ValidationError, "Missing required options: #{missing.join(', ')}" if missing.any?
-        
+
         validate_instalment! if options[:instalment]
       end
 
