@@ -1,6 +1,23 @@
 # Changelog
 
+## [0.9.0] - 2025-01-02
+
+### Added
+- Added test coverage for all configuration options
+- Added test coverage for all error cases
+- Achieved 100% test coverage (both line and branch coverage)
+
+### Changed
+- Improved test organization and descriptions
+- Enhanced error handling test cases
+
 ## [0.8.0] - 2025-01-02
+
+### Added
+- Added JKO Pay support
+  - New `JkoPay::Pay` class for processing JKO Pay payments
+  - Added `jko_pay_merchant_id` configuration option
+  - Added comprehensive test coverage for JKO Pay functionality
 
 ### Changed
 - Set default instalment value to 0 (no instalment)

@@ -3,7 +3,7 @@
 module Tappay
   class Configuration
     attr_accessor :partner_key, :merchant_id, :merchant_group_id, :instalment_merchant_id,
-                 :line_pay_merchant_id, :app_id, :currency, :vat_number
+                 :line_pay_merchant_id, :jko_pay_merchant_id, :app_id, :currency, :vat_number
     attr_writer :api_version
 
     def initialize
@@ -32,6 +32,11 @@ module Tappay
 
     def mode
       @mode ||= :sandbox
+    end
+
+    def validate!
+      raise ValidationError, 'partner_key is required' if partner_key.nil?
+      raise ValidationError, 'merchant_id is required' if merchant_id.nil?
     end
   end
 end

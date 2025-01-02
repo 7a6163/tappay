@@ -73,9 +73,24 @@ RSpec.describe Tappay::Configuration do
       expect(config.merchant_id).to eq('merchant_123')
     end
 
+    it 'sets and gets merchant_group_id' do
+      config.merchant_group_id = 'group_123'
+      expect(config.merchant_group_id).to eq('group_123')
+    end
+
     it 'sets and gets instalment_merchant_id' do
       config.instalment_merchant_id = 'instalment_123'
       expect(config.instalment_merchant_id).to eq('instalment_123')
+    end
+
+    it 'sets and gets line_pay_merchant_id' do
+      config.line_pay_merchant_id = 'line_pay_123'
+      expect(config.line_pay_merchant_id).to eq('line_pay_123')
+    end
+
+    it 'sets and gets jko_pay_merchant_id' do
+      config.jko_pay_merchant_id = 'jko_pay_123'
+      expect(config.jko_pay_merchant_id).to eq('jko_pay_123')
     end
 
     it 'sets and gets app_id' do
@@ -102,6 +117,50 @@ RSpec.describe Tappay::Configuration do
 
     it 'maintains default api_version' do
       expect(config.api_version).to eq('3')
+    end
+  end
+
+  describe '#validate!' do
+    context 'when required fields are missing' do
+      it 'raises error when partner_key is missing' do
+        config.merchant_id = 'merchant_123'
+        expect { config.validate! }.to raise_error(Tappay::ValidationError, 'partner_key is required')
+      end
+
+      it 'raises error when merchant_id is missing' do
+        config.partner_key = 'partner_123'
+        expect { config.validate! }.to raise_error(Tappay::ValidationError, 'merchant_id is required')
+      end
+
+      it 'raises error when both fields are missing' do
+        expect { config.validate! }.to raise_error(Tappay::ValidationError, 'partner_key is required')
+      end
+    end
+
+    context 'when all required fields are present' do
+      it 'does not raise error' do
+        config.partner_key = 'partner_123'
+        config.merchant_id = 'merchant_123'
+        expect { config.validate! }.not_to raise_error
+      end
+    end
+  end
+
+  describe '#mode' do
+    context 'when mode is not set' do
+      before { config.instance_variable_set(:@mode, nil) }
+
+      it 'defaults to sandbox' do
+        expect(config.mode).to eq(:sandbox)
+      end
+    end
+
+    context 'when mode is set' do
+      before { config.mode = :production }
+
+      it 'returns the set mode' do
+        expect(config.mode).to eq(:production)
+      end
     end
   end
 end
