@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.10.0] - 2025-01-02
+
+### Added
+- Added support for `merchant_group_id` in payment processing
+- Added ability to use either `merchant_id` or `merchant_group_id` for merchant identification
+
+### Changed
+- Modified payment validation to accept either `merchant_id` or `merchant_group_id`
+- Updated configuration validation to support flexible merchant identification
+- Improved payment data handling to prioritize `merchant_group_id` over `merchant_id`
+
 ## [0.9.0] - 2025-01-02
 
 ### Added

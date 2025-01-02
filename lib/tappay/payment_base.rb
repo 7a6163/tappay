@@ -20,48 +20,26 @@ module Tappay
     end
 
     def payment_data
-      # Check configuration conflicts first
-      if Tappay.configuration.merchant_group_id && Tappay.configuration.merchant_id
-        raise Tappay::ValidationError, "merchant_group_id and merchant_id cannot be used together"
-      end
-
-      # Get values from options
-      opt_group_id = options[:merchant_group_id]
-      opt_merchant_id = options[:merchant_id]
-
-      # Check for conflicts in options
-      if opt_group_id && opt_merchant_id
-        raise Tappay::ValidationError, "merchant_group_id and merchant_id cannot be used together"
-      end
-
-      # If options has any ID, use it exclusively
-      if opt_group_id || opt_merchant_id
-        merchant_group_id = opt_group_id
-        merchant_id = opt_merchant_id
+      # Prioritize merchant_group_id from options, then configuration
+      merchant_group_id = options[:merchant_group_id] || Tappay.configuration.merchant_group_id
+      merchant_id = options[:merchant_id] || get_merchant_id
+      
+      # Determine which identifier to use
+      identifier = if merchant_group_id
+        { merchant_group_id: merchant_group_id }
       else
-        # If no options, use configuration
-        merchant_group_id = Tappay.configuration.merchant_group_id
-        merchant_id = get_merchant_id
+        raise Tappay::ValidationError, "Either merchant_group_id or merchant_id must be provided" unless merchant_id
+        { merchant_id: merchant_id }
       end
 
-      # Check if at least one is provided
-      unless merchant_group_id || merchant_id
-        raise Tappay::ValidationError, "Either merchant_group_id or merchant_id must be provided"
-      end
-
-      {
+      identifier.merge({
         partner_key: Tappay.configuration.partner_key,
         amount: options[:amount],
         details: options[:details],
         currency: options[:currency] || 'TWD',
         order_number: options[:order_number],
         three_domain_secure: options[:three_domain_secure] || false
-      }.tap do |data|
-        if merchant_group_id
-          data[:merchant_group_id] = merchant_group_id
-        else
-          data[:merchant_id] = merchant_id
-        end
+      }).tap do |data|
         data[:cardholder] = card_holder_data if options[:cardholder]
         data[:result_url] = options[:result_url] if options[:result_url]
         data[:instalment] = options[:instalment] || 0

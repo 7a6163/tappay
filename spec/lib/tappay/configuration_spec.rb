@@ -121,26 +121,56 @@ RSpec.describe Tappay::Configuration do
   end
 
   describe '#validate!' do
-    context 'when required fields are missing' do
-      it 'raises error when partner_key is missing' do
-        config.merchant_id = 'merchant_123'
-        expect { config.validate! }.to raise_error(Tappay::ValidationError, 'partner_key is required')
-      end
-
-      it 'raises error when merchant_id is missing' do
-        config.partner_key = 'partner_123'
-        expect { config.validate! }.to raise_error(Tappay::ValidationError, 'merchant_id is required')
-      end
-
-      it 'raises error when both fields are missing' do
-        expect { config.validate! }.to raise_error(Tappay::ValidationError, 'partner_key is required')
+    context 'without partner_key' do
+      it 'raises ValidationError' do
+        expect { config.validate! }
+          .to raise_error(Tappay::ValidationError, /partner_key is required/)
       end
     end
 
-    context 'when all required fields are present' do
-      it 'does not raise error' do
-        config.partner_key = 'partner_123'
-        config.merchant_id = 'merchant_123'
+    context 'without merchant identifiers' do
+      before do
+        config.partner_key = 'test_key'
+        config.merchant_id = nil
+        config.merchant_group_id = nil
+      end
+
+      it 'raises ValidationError' do
+        expect { config.validate! }
+          .to raise_error(Tappay::ValidationError, /Either merchant_id or merchant_group_id is required/)
+      end
+    end
+
+    context 'with merchant_id' do
+      before do
+        config.partner_key = 'test_key'
+        config.merchant_id = 'test_merchant'
+      end
+
+      it 'passes validation' do
+        expect { config.validate! }.not_to raise_error
+      end
+    end
+
+    context 'with merchant_group_id' do
+      before do
+        config.partner_key = 'test_key'
+        config.merchant_group_id = 'test_group'
+      end
+
+      it 'passes validation' do
+        expect { config.validate! }.not_to raise_error
+      end
+    end
+
+    context 'with both merchant_id and merchant_group_id' do
+      before do
+        config.partner_key = 'test_key'
+        config.merchant_id = 'test_merchant'
+        config.merchant_group_id = 'test_group'
+      end
+
+      it 'passes validation' do
         expect { config.validate! }.not_to raise_error
       end
     end

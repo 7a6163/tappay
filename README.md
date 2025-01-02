@@ -10,9 +10,12 @@ A Ruby library for integrating with TapPay payment services. This gem provides a
 
 - Multiple payment methods:
   - Credit card payments (one-time and tokenized)
-  - Instalment payments (3 to 24 months)
+  - Instalment payments (3, 6, 12, 24 and 36 months)
   - Line Pay
   - JKO Pay
+- Flexible merchant identification:
+  - Support for both `merchant_id` and `merchant_group_id`
+  - Automatic fallback handling
 - Refund processing
 - Transaction status queries
 - Comprehensive error handling
@@ -71,6 +74,8 @@ Tappay.configure do |config|
   config.vat_number = 'your_vat_number'.freeze
 end
 ```
+
+Note: When both `merchant_id` and `merchant_group_id` are provided, `merchant_group_id` will be used for payment processing.
 
 ### Merchant ID Configuration
 
@@ -186,6 +191,7 @@ result = Tappay::LinePay::Pay.new(
 Tappay.configure do |config|
   config.partner_key = 'YOUR_PARTNER_KEY'
   config.merchant_id = 'YOUR_MERCHANT_ID'
+  config.merchant_group_id = 'YOUR_MERCHANT_GROUP_ID' # Optional, mutually exclusive with merchant_id
   config.jko_pay_merchant_id = 'YOUR_JKO_PAY_MERCHANT_ID' # Optional, falls back to merchant_id if not set
   config.sandbox = true # Set to false for production
 end
