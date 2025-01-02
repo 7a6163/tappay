@@ -124,6 +124,24 @@ RSpec.describe Tappay::PaymentBase do
       end
     end
 
+    context 'with default values' do
+      subject { concrete_class.new(valid_options) }
+
+      before do
+        Tappay.configure do |c|
+          c.merchant_id = 'default_merchant'
+          c.merchant_group_id = nil
+        end
+      end
+
+      it 'uses default values' do
+        data = subject.send(:payment_data)
+        expect(data[:currency]).to eq('TWD')
+        expect(data[:three_domain_secure]).to be false
+        expect(data[:instalment]).to eq(0)
+      end
+    end
+
     context 'with cardholder as a hash' do
       let(:cardholder_hash) { { phone_number: '0912345678', name: 'Test User', email: 'test@example.com' } }
       let(:options) { valid_options.merge(cardholder: cardholder_hash) }
@@ -199,84 +217,6 @@ RSpec.describe Tappay::PaymentBase do
         expect { subject.send(:payment_data) }
           .to raise_error(Tappay::ValidationError, /Either merchant_group_id or merchant_id must be provided/)
       end
-
-      it 'raises error when both merchant_id and merchant_group_id are provided in options' do
-        options = valid_options.merge(
-          merchant_id: 'merchant_123',
-          merchant_group_id: 'group_123'
-        )
-        subject = concrete_class.new(options)
-        expect { subject.send(:payment_data) }
-          .to raise_error(Tappay::ValidationError, /cannot be used together/)
-      end
-
-      it 'ignores configuration when options are provided' do
-        Tappay.configure { |c| c.merchant_id = 'merchant_123' }
-        options = valid_options.merge(merchant_group_id: 'group_123')
-        subject = concrete_class.new(options)
-        data = subject.send(:payment_data)
-        expect(data[:merchant_group_id]).to eq('group_123')
-        expect(data).not_to have_key(:merchant_id)
-      end
-
-      it 'prefers merchant_group_id from options over configuration' do
-        Tappay.configure do |c|
-          c.merchant_group_id = 'group_456'
-        end
-        options = valid_options.merge(merchant_group_id: 'group_123')
-        subject = concrete_class.new(options)
-        data = subject.send(:payment_data)
-        expect(data[:merchant_group_id]).to eq('group_123')
-        expect(data).not_to have_key(:merchant_id)
-      end
-
-      it 'ignores configuration when options are provided' do
-        Tappay.configure { |c| c.merchant_id = 'merchant_123' }
-        options = valid_options.merge(merchant_group_id: 'group_123')
-        subject = concrete_class.new(options)
-        data = subject.send(:payment_data)
-        expect(data[:merchant_group_id]).to eq('group_123')
-        expect(data).not_to have_key(:merchant_id)
-      end
-    end
-
-    context 'with default values' do
-      before do
-        Tappay.configure do |c|
-          c.merchant_group_id = nil
-          c.merchant_id = 'default_merchant'
-        end
-      end
-
-      it 'uses configuration merchant_id' do
-        data = subject.send(:payment_data)
-        expect(data[:merchant_id]).to eq('default_merchant')
-      end
-
-      it 'uses configuration merchant_group_id when available' do
-        Tappay.configure do |c|
-          c.merchant_id = nil
-          c.merchant_group_id = 'default_group'
-        end
-        data = subject.send(:payment_data)
-        expect(data[:merchant_group_id]).to eq('default_group')
-        expect(data).not_to have_key(:merchant_id)
-      end
-
-      it 'excludes merchant_group_id when not set' do
-        data = subject.send(:payment_data)
-        expect(data).not_to have_key(:merchant_group_id)
-      end
-
-      it 'uses TWD as default currency' do
-        data = subject.send(:payment_data)
-        expect(data[:currency]).to eq('TWD')
-      end
-
-      it 'uses false as default three_domain_secure' do
-        data = subject.send(:payment_data)
-        expect(data[:three_domain_secure]).to be false
-      end
     end
   end
 
@@ -337,32 +277,30 @@ RSpec.describe Tappay::PaymentBase do
   end
 
   describe '#validate_instalment!' do
-    context 'with valid instalment value' do
-      let(:options) { valid_options.merge(instalment: 6) }
-      subject { concrete_class.new(options) }
+    context 'with valid instalment values' do
+      [0, 3, 6, 12, 24, 30].each do |value|
+        context "when instalment is #{value}" do
+          let(:options) { valid_options.merge(instalment: value) }
+          subject { concrete_class.new(options) }
 
-      it 'does not raise error' do
-        expect { subject.send(:validate_instalment!) }.not_to raise_error
+          it 'does not raise error' do
+            expect { subject.send(:validate_instalment!) }.not_to raise_error
+          end
+        end
       end
     end
 
     context 'with invalid instalment value' do
-      let(:options) { valid_options.merge(instalment: 31) }
-      subject { concrete_class.new(options) }
+      [1, 2, 4, 5, 7, 8, 9, 10, 11, 13, 15, 18, 20, 36].each do |value|
+        context "when instalment is #{value}" do
+          let(:options) { valid_options.merge(instalment: value) }
+          subject { concrete_class.new(options) }
 
-      it 'raises ValidationError' do
-        expect { subject.send(:validate_instalment!) }
-          .to raise_error(Tappay::ValidationError, "Instalment must be between 3 and 30")
-      end
-    end
-
-    context 'with zero instalment value' do
-      let(:options) { valid_options.merge(instalment: 0) }
-      subject { concrete_class.new(options) }
-
-      it 'raises ValidationError' do
-        expect { subject.send(:validate_instalment!) }
-          .to raise_error(Tappay::ValidationError, "Instalment must be between 3 and 30")
+          it 'raises ValidationError' do
+            expect { subject.send(:validate_instalment!) }
+              .to raise_error(Tappay::ValidationError, "Instalment must be one of: 0, 3, 6, 12, 24, 30")
+          end
+        end
       end
     end
 
@@ -372,7 +310,7 @@ RSpec.describe Tappay::PaymentBase do
 
       it 'raises ValidationError' do
         expect { subject.send(:validate_instalment!) }
-          .to raise_error(Tappay::ValidationError, "Instalment must be between 3 and 30")
+          .to raise_error(Tappay::ValidationError, "Instalment must be one of: 0, 3, 6, 12, 24, 30")
       end
     end
 

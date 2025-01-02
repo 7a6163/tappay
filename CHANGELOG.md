@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.0] - 2025-01-02
+
+### Changed
+- Set default instalment value to 0 (no instalment)
+- Improved instalment validation to only allow specific values: 0 (no instalment), 3, 6, 12, 24, 30 months
+- Enhanced error messages to clearly list all valid instalment options
+- Updated tests to cover all valid and invalid instalment scenarios
+
+### Fixed
+- Fixed instalment validation to match TapPay's requirements
+- Fixed test cases to reflect the new instalment validation rules
+
 ## [0.7.2] - 2025-01-02
 
 ### Added
@@ -276,3 +288,5 @@
 - Refund processing
 - Transaction queries
 - Basic error handling
+
+## [Unreleased]
