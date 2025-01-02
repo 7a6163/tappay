@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.0] - 2025-01-02
+
+### Added
+- Added Line Pay support with dedicated payment flow
+- Added Line Pay redirect URL handling
+
+### Changed
+- Refactored payment endpoints structure:
+  - Moved common payment endpoints to a new `Payment` module
+  - Separated payment-specific endpoints into their respective modules
+  - Improved code organization and reusability
+- Updated all payment classes to use the new endpoint structure
+
 ## [0.6.0] - 2024-12-31
 
 ### Added

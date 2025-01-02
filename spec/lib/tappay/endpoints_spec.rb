@@ -25,23 +25,31 @@ RSpec.describe Tappay::Endpoints do
     end
   end
 
-  describe Tappay::Endpoints::CreditCard do
+  describe Tappay::Endpoints::Payment do
     let(:base_url) { 'https://sandbox.tappaysdk.com' }
 
     before do
       allow(Tappay::Endpoints).to receive(:base_url).and_return(base_url)
     end
 
-    describe '.payment_by_prime_url' do
+    describe '.pay_by_prime_url' do
       it 'returns correct URL' do
-        expect(described_class.payment_by_prime_url).to eq("#{base_url}/tpc/payment/pay-by-prime")
+        expect(described_class.pay_by_prime_url).to eq("#{base_url}/tpc/payment/pay-by-prime")
       end
     end
 
-    describe '.payment_by_token_url' do
+    describe '.pay_by_token_url' do
       it 'returns correct URL' do
-        expect(described_class.payment_by_token_url).to eq("#{base_url}/tpc/payment/pay-by-token")
+        expect(described_class.pay_by_token_url).to eq("#{base_url}/tpc/payment/pay-by-token")
       end
+    end
+  end
+
+  describe Tappay::Endpoints::CreditCard do
+    let(:base_url) { 'https://sandbox.tappaysdk.com' }
+
+    before do
+      allow(Tappay::Endpoints).to receive(:base_url).and_return(base_url)
     end
 
     describe '.refund_url' do
@@ -93,6 +101,20 @@ RSpec.describe Tappay::Endpoints do
     describe '.remove_card_url' do
       it 'returns correct URL' do
         expect(described_class.remove_card_url).to eq("#{base_url}/tpc/card/remove")
+      end
+    end
+  end
+
+  describe Tappay::Endpoints::LinePay do
+    let(:base_url) { 'https://sandbox.tappaysdk.com' }
+
+    before do
+      allow(Tappay::Endpoints).to receive(:base_url).and_return(base_url)
+    end
+
+    describe '.redirect_url' do
+      it 'returns correct URL' do
+        expect(described_class.redirect_url).to eq("#{base_url}/tpc/payment/redirect")
       end
     end
   end

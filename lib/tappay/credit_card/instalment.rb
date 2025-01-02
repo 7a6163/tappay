@@ -23,7 +23,7 @@ module Tappay
       end
 
       def endpoint_url
-        Tappay::Endpoints::CreditCard.payment_by_prime_url
+        Tappay::Endpoints::Payment.pay_by_prime_url
       end
 
       def validate_options!
@@ -60,7 +60,7 @@ module Tappay
       end
 
       def endpoint_url
-        Tappay::Endpoints::CreditCard.payment_by_token_url
+        Tappay::Endpoints::Payment.pay_by_token_url
       end
 
       def validate_options!

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe Tappay::CreditCard::PaymentBase do
+RSpec.describe Tappay::PaymentBase do
   let(:concrete_class) do
     Class.new(described_class) do
       def endpoint_url
