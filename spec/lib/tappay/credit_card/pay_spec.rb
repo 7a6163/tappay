@@ -58,7 +58,8 @@ RSpec.describe Tappay::CreditCard::Pay do
           prime: prime,
           remember: false,
           cardholder: cardholder.to_h,
-          three_domain_secure: false
+          three_domain_secure: false,
+          instalment: 0
         }
 
         expect_any_instance_of(Tappay::Client).to receive(:post).with(payment_url, expected_data)
@@ -110,7 +111,8 @@ RSpec.describe Tappay::CreditCard::Pay do
           order_number: nil,
           card_key: card_key,
           card_token: card_token,
-          three_domain_secure: false
+          three_domain_secure: false,
+          instalment: 0
         }
 
         expect_any_instance_of(Tappay::Client).to receive(:post).with(payment_url, expected_data)

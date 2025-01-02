@@ -2,6 +2,8 @@
 
 module Tappay
   class PaymentBase < Client
+    VALID_INSTALMENT_VALUES = [0, 3, 6, 12, 24, 30].freeze
+
     def initialize(options = {})
       super
       validate_options!
@@ -61,8 +63,8 @@ module Tappay
           data[:merchant_id] = merchant_id
         end
         data[:cardholder] = card_holder_data if options[:cardholder]
-        data[:instalment] = options[:instalment] if options[:instalment]
         data[:result_url] = options[:result_url] if options[:result_url]
+        data[:instalment] = options[:instalment] || 0
       end
     end
 
@@ -84,11 +86,21 @@ module Tappay
       missing = required.select { |key| options[key].nil? }
       raise ValidationError, "Missing required options: #{missing.join(', ')}" if missing.any?
 
+      validate_amount!
       validate_instalment! if options[:instalment]
       validate_result_url! if options[:three_domain_secure]
     end
 
     private
+
+    def validate_amount!
+      amount = options[:amount]
+      if !amount.is_a?(Numeric)
+        raise ValidationError, "amount must be a number"
+      elsif amount <= 0
+        raise ValidationError, "amount must be greater than 0"
+      end
+    end
 
     def get_merchant_id
       Tappay.configuration.merchant_id
@@ -103,17 +115,20 @@ module Tappay
     end
 
     def validate_instalment!
-      unless (3..30).include?(options[:instalment].to_i)
-        raise ValidationError, "Instalment must be between 3 and 30"
+      instalment = options[:instalment].to_i
+      unless VALID_INSTALMENT_VALUES.include?(instalment)
+        raise ValidationError, "Instalment must be one of: #{VALID_INSTALMENT_VALUES.join(', ')}"
       end
     end
 
     def validate_result_url!
-      unless options[:result_url]&.is_a?(Hash)
-        raise ValidationError, "result_url must be a hash"
-      end
+      result_url = options[:result_url]
+      raise ValidationError, "result_url must be a hash" unless result_url.is_a?(Hash)
 
-      unless options[:result_url][:frontend_redirect_url] && options[:result_url][:backend_notify_url]
+      required_fields = %w[frontend_redirect_url backend_notify_url]
+      missing = required_fields.select { |field| result_url[field.to_sym].nil? && result_url[field].nil? }
+
+      if missing.any?
         raise ValidationError, "result_url must contain both frontend_redirect_url and backend_notify_url"
       end
     end

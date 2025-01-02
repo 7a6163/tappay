@@ -276,3 +276,11 @@
 - Refund processing
 - Transaction queries
 - Basic error handling
+
+## [Unreleased]
+
+### Changed
+- Set default instalment value to 0
+- Improved instalment validation to only allow specific values: 0 (no instalment), 3, 6, 12, 24, 30 months
+- Enhanced error messages to clearly list all valid instalment options
+- Updated tests to cover all valid and invalid instalment scenarios
