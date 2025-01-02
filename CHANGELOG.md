@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.7.2] - 2025-01-02
+
+### Added
+- Added support for payment-specific merchant IDs:
+  - `line_pay_merchant_id` for Line Pay transactions
+  - `instalment_merchant_id` for instalment payments
+- Added merchant ID fallback mechanism:
+  1. Payment-specific merchant ID (if available)
+  2. Default merchant ID
+
+### Changed
+- Updated instalment validation to allow 3-30 months instead of 1-12
+- Improved validation error messages for result_url
+
 ## [0.7.1] - 2025-01-02
 
 ### Changed

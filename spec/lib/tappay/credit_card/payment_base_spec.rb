@@ -288,7 +288,7 @@ RSpec.describe Tappay::PaymentBase do
 
         it 'raises ValidationError' do
           expect { subject.send(:validate_result_url!) }
-            .to raise_error(Tappay::ValidationError, /result_url.*required when three_domain_secure is true/)
+            .to raise_error(Tappay::ValidationError, "result_url must be a hash")
         end
       end
 
@@ -303,7 +303,7 @@ RSpec.describe Tappay::PaymentBase do
 
         it 'raises ValidationError' do
           expect { subject.send(:validate_result_url!) }
-            .to raise_error(Tappay::ValidationError, /result_url.*required when three_domain_secure is true/)
+            .to raise_error(Tappay::ValidationError, "result_url must contain both frontend_redirect_url and backend_notify_url")
         end
       end
 
@@ -347,12 +347,12 @@ RSpec.describe Tappay::PaymentBase do
     end
 
     context 'with invalid instalment value' do
-      let(:options) { valid_options.merge(instalment: 13) }
+      let(:options) { valid_options.merge(instalment: 31) }
       subject { concrete_class.new(options) }
 
       it 'raises ValidationError' do
         expect { subject.send(:validate_instalment!) }
-          .to raise_error(Tappay::ValidationError, "Invalid instalment value. Must be between 1 and 12")
+          .to raise_error(Tappay::ValidationError, "Instalment must be between 3 and 30")
       end
     end
 
@@ -362,7 +362,7 @@ RSpec.describe Tappay::PaymentBase do
 
       it 'raises ValidationError' do
         expect { subject.send(:validate_instalment!) }
-          .to raise_error(Tappay::ValidationError, "Invalid instalment value. Must be between 1 and 12")
+          .to raise_error(Tappay::ValidationError, "Instalment must be between 3 and 30")
       end
     end
 
@@ -372,7 +372,7 @@ RSpec.describe Tappay::PaymentBase do
 
       it 'raises ValidationError' do
         expect { subject.send(:validate_instalment!) }
-          .to raise_error(Tappay::ValidationError, "Invalid instalment value. Must be between 1 and 12")
+          .to raise_error(Tappay::ValidationError, "Instalment must be between 3 and 30")
       end
     end
 
@@ -380,7 +380,7 @@ RSpec.describe Tappay::PaymentBase do
       let(:options) { valid_options.merge(instalment: '6') }
       subject { concrete_class.new(options) }
 
-      it 'does not raise error for valid string number' do
+      it 'does not raise error' do
         expect { subject.send(:validate_instalment!) }.not_to raise_error
       end
     end
