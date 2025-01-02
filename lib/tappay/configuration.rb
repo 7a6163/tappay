@@ -36,7 +36,7 @@ module Tappay
 
     def validate!
       raise ValidationError, 'partner_key is required' if partner_key.nil?
-      raise ValidationError, 'merchant_id is required' if merchant_id.nil?
+      raise ValidationError, 'Either merchant_id or merchant_group_id is required' if merchant_id.nil? && merchant_group_id.nil?
     end
   end
 end
