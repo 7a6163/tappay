@@ -38,8 +38,8 @@ RSpec.describe Tappay::CreditCard::Instalment do
   end
 
   before do
-    allow(Tappay::Endpoints::CreditCard).to receive(:payment_by_prime_url).and_return(payment_url)
-    allow(Tappay::Endpoints::CreditCard).to receive(:payment_by_token_url).and_return(payment_url)
+    allow(Tappay::Endpoints::Payment).to receive(:pay_by_prime_url).and_return(payment_url)
+    allow(Tappay::Endpoints::Payment).to receive(:pay_by_token_url).and_return(payment_url)
   end
 
   describe '.by_prime' do
@@ -219,7 +219,7 @@ RSpec.describe Tappay::CreditCard::Instalment do
 
       it 'sends the correct payment data' do
         expect(payment_instance).to receive(:post)
-          .with(Tappay::Endpoints::CreditCard.payment_by_prime_url, expected_payment_data)
+          .with(Tappay::Endpoints::Payment.pay_by_prime_url, expected_payment_data)
           .and_return(true)
 
         payment_instance.execute
@@ -271,7 +271,7 @@ RSpec.describe Tappay::CreditCard::Instalment do
 
       it 'sends the correct payment data' do
         expect(payment_instance).to receive(:post)
-          .with(Tappay::Endpoints::CreditCard.payment_by_token_url, expected_payment_data)
+          .with(Tappay::Endpoints::Payment.pay_by_token_url, expected_payment_data)
           .and_return(true)
 
         payment_instance.execute

@@ -53,7 +53,7 @@ RSpec.describe Tappay::CreditCard::InstalmentByToken do
   describe '#endpoint_url' do
     it 'returns the correct endpoint URL' do
       expect(subject.send(:endpoint_url))
-        .to eq(Tappay::Endpoints::CreditCard.payment_by_token_url)
+        .to eq(Tappay::Endpoints::Payment.pay_by_token_url)
     end
   end
 

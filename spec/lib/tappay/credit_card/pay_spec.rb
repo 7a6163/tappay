@@ -19,8 +19,8 @@ RSpec.describe Tappay::CreditCard::Pay do
   end
 
   before do
-    allow(Tappay::Endpoints::CreditCard).to receive(:payment_by_prime_url).and_return(payment_url)
-    allow(Tappay::Endpoints::CreditCard).to receive(:payment_by_token_url).and_return(payment_url)
+    allow(Tappay::Endpoints::Payment).to receive(:pay_by_prime_url).and_return(payment_url)
+    allow(Tappay::Endpoints::Payment).to receive(:pay_by_token_url).and_return(payment_url)
   end
 
   describe '.by_prime' do

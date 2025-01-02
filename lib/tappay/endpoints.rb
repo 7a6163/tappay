@@ -12,16 +12,20 @@ module Tappay
       end
     end
 
-    module CreditCard
+    module Payment
       class << self
-        def payment_by_prime_url
+        def pay_by_prime_url
           "#{Endpoints.base_url}/tpc/payment/pay-by-prime"
         end
 
-        def payment_by_token_url
+        def pay_by_token_url
           "#{Endpoints.base_url}/tpc/payment/pay-by-token"
         end
+      end
+    end
 
+    module CreditCard
+      class << self
         def refund_url
           "#{Endpoints.base_url}/tpc/transaction/refund"
         end
@@ -52,6 +56,18 @@ module Tappay
 
         def remove_card_url
           "#{Endpoints.base_url}/tpc/card/remove"
+        end
+      end
+    end
+
+    module LinePay
+      class << self
+        def redirect_url
+          "#{Endpoints.base_url}/tpc/payment/redirect"
+        end
+
+        def query_url
+          "#{Endpoints.base_url}/tpc/transaction/query"
         end
       end
     end
