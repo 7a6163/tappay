@@ -39,7 +39,7 @@ module Tappay
       else
         # If no options, use configuration
         merchant_group_id = Tappay.configuration.merchant_group_id
-        merchant_id = Tappay.configuration.merchant_id
+        merchant_id = get_merchant_id
       end
 
       # Check if at least one is provided
@@ -90,6 +90,10 @@ module Tappay
 
     private
 
+    def get_merchant_id
+      Tappay.configuration.merchant_id
+    end
+
     def base_required_options
       [:amount, :details]
     end
@@ -99,17 +103,19 @@ module Tappay
     end
 
     def validate_instalment!
-      unless options[:instalment].to_i.between?(1, 12)
-        raise ValidationError, "Invalid instalment value. Must be between 1 and 12"
+      unless (3..30).include?(options[:instalment].to_i)
+        raise ValidationError, "Instalment must be between 3 and 30"
       end
     end
 
     def validate_result_url!
-      return if options[:result_url] && 
-               options[:result_url][:frontend_redirect_url] && 
-               options[:result_url][:backend_notify_url]
+      unless options[:result_url]&.is_a?(Hash)
+        raise ValidationError, "result_url must be a hash"
+      end
 
-      raise ValidationError, "result_url with frontend_redirect_url and backend_notify_url is required when three_domain_secure is true"
+      unless options[:result_url][:frontend_redirect_url] && options[:result_url][:backend_notify_url]
+        raise ValidationError, "result_url must contain both frontend_redirect_url and backend_notify_url"
+      end
     end
   end
 end

@@ -33,6 +33,10 @@ module Tappay
 
       private
 
+      def get_merchant_id
+        Tappay.configuration.instalment_merchant_id || super
+      end
+
       def additional_required_options
         [:prime, :cardholder, :instalment]
       end
@@ -69,6 +73,10 @@ module Tappay
       end
 
       private
+
+      def get_merchant_id
+        Tappay.configuration.instalment_merchant_id || super
+      end
 
       def additional_required_options
         [:card_key, :card_token, :instalment]

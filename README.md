@@ -8,8 +8,10 @@ A Ruby library for integrating with TapPay payment services. This gem provides a
 
 ## Features
 
-- Credit card payments (one-time and tokenized)
-- Instalment payments
+- Multiple payment methods:
+  - Credit card payments (one-time and tokenized)
+  - Instalment payments (3 to 24 months)
+  - Line Pay
 - Refund processing
 - Transaction status queries
 - Comprehensive error handling
@@ -59,7 +61,10 @@ Tappay.configure do |config|
   # OR
   config.merchant_group_id = 'your_merchant_group_id'.freeze
 
+  # Payment-specific merchant IDs
   config.instalment_merchant_id = 'your_instalment_merchant_id'.freeze
+  config.line_pay_merchant_id = 'your_line_pay_merchant_id'.freeze
+
   config.currency = 'TWD'.freeze
   config.vat_number = 'your_vat_number'.freeze
 end
@@ -67,22 +72,44 @@ end
 
 ### Merchant ID Configuration
 
-The gem supports two types of merchant identification:
-1. `merchant_id`: Individual merchant ID
-2. `merchant_group_id`: Group merchant ID
+The gem supports flexible merchant ID configuration:
 
-Important rules:
-- You can set either `merchant_id` or `merchant_group_id` in the configuration, but not both
-- When making a payment, you can override the configured merchant ID by providing either `merchant_id` or `merchant_group_id` in the payment options
-- If you provide merchant ID in the payment options, it will take precedence over any configuration
+1. Global merchant ID:
+   - `merchant_id`: Default merchant ID for all payments
+   - `merchant_group_id`: Group merchant ID (mutually exclusive with merchant_id)
 
-Example of overriding merchant ID in payment:
+2. Payment-specific merchant IDs:
+   - `instalment_merchant_id`: Specific merchant ID for instalment payments
+   - `line_pay_merchant_id`: Specific merchant ID for Line Pay transactions
+
+Merchant ID Priority:
+1. Payment options merchant ID (if provided in the payment call)
+2. Payment-specific merchant ID (if configured)
+3. Global merchant ID
+
+Example of merchant ID usage:
 ```ruby
-# Using merchant_group_id in payment options
+# Using default merchant ID
 result = Tappay::CreditCard::Pay.by_prime(
   prime: 'prime_from_tappay_sdk',
   amount: 100,
-  merchant_group_id: 'group_123',  # This will be used instead of configured merchant_id
+  order_number: 'ORDER-123'
+)
+
+# Using payment-specific merchant ID
+# This will automatically use line_pay_merchant_id if configured
+result = Tappay::LinePay::Pay.new(
+  prime: 'line_pay_prime',
+  amount: 100,
+  frontend_redirect_url: 'https://example.com/line_pay/result',
+  backend_notify_url: 'https://example.com/line_pay/notify'
+).execute
+
+# Overriding merchant ID in payment options
+result = Tappay::CreditCard::Pay.by_prime(
+  prime: 'prime_from_tappay_sdk',
+  amount: 100,
+  merchant_id: 'override_merchant_id',  # This takes highest priority
   order_number: 'ORDER-123'
 )
 ```
@@ -97,235 +124,59 @@ Tappay.configure do |config|
   config.partner_key = ENV['TAPPAY_PARTNER_KEY'].freeze
   config.app_id = ENV['TAPPAY_APP_ID'].freeze
   config.merchant_id = ENV['TAPPAY_MERCHANT_ID'].freeze
+  config.line_pay_merchant_id = ENV['TAPPAY_LINE_PAY_MERCHANT_ID'].freeze
+  config.instalment_merchant_id = ENV['TAPPAY_INSTALMENT_MERCHANT_ID'].freeze
   # ... other configurations
 end
 ```
-
-### 3. Using Rails Credentials
-
-If you're using Rails, you can use credentials:
-
-```ruby
-Tappay.configure do |config|
-  config.mode = Rails.env.production? ? :production : :sandbox
-  config.partner_key = Rails.application.credentials.tappay[:partner_key].freeze
-  config.app_id = Rails.application.credentials.tappay[:app_id].freeze
-  # ... other configurations
-end
-```
-
-## Environment-based Endpoints
-
-The gem automatically handles different endpoints for sandbox and production environments. You don't need to specify the full URLs - just set the mode:
-
-```ruby
-# For sandbox (default)
-config.mode = :sandbox  # Uses https://sandbox.tappaysdk.com/...
-
-# For production
-config.mode = :production  # Uses https://prod.tappaysdk.com/...
-```
-
-## Card Holder Information
-
-You can provide cardholder information in two ways:
-
-### 1. Using CardHolder Object (Recommended)
-
-```ruby
-# Create a CardHolder object
-card_holder = Tappay::CardHolder.new(
-  name: 'John Doe',
-  email: 'john@example.com',
-  phone_number: '+886923456789'
-)
-
-# Use in payment directly
-result = Tappay::CreditCard::Pay.by_prime(
-  prime: 'prime_from_tappay_sdk',
-  amount: 100,
-  order_number: 'ORDER-123',
-  card_holder: card_holder  # No need to call as_json
-)
-```
-
-### 2. Using Hash Directly
-
-```ruby
-result = Tappay::CreditCard::Pay.by_prime(
-  prime: 'prime_from_tappay_sdk',
-  amount: 100,
-  order_number: 'ORDER-123',
-  card_holder: {
-    name: 'John Doe',
-    email: 'john@example.com',
-    phone_number: '+886923456789'
-  }
-)
-```
-
-Both approaches are valid and will work the same way. The CardHolder object provides a more structured way to handle cardholder information and includes validation.
-
-## Payment URL
-
-When processing payments, the API response may include a `payment_url` field. This URL is used for redirecting users to complete their payment in scenarios such as:
-
-- 3D Secure verification
-- LINE Pay payment page
-- JKO Pay payment page
-
-Note: payment_url is not supported for:
-- Apple Pay
-- Google Pay
-- Samsung Pay
-
-Example of handling payment URL in response:
-```ruby
-result = Tappay::CreditCard::Pay.by_prime(
-  prime: 'prime_from_tappay_sdk',
-  amount: 100,
-  order_number: 'ORDER-123'
-)
-
-if result['status'] == 0
-  if result['payment_url']
-    # Redirect user to payment page for:
-    # - 3D Secure verification
-    # - LINE Pay payment
-    # - JKO Pay payment
-    redirect_to result['payment_url']
-  end
-end
-```
-
-## URL Properties
-
-The `result_url` (JSONObject) property is required when using LINE Pay, JKOPAY, 悠遊付, Atome, Pi錢包, 全盈支付, or when three_domain_secure is true. It contains the following URL fields:
-
-```json
-{
-  "frontend_redirect_url": "https://example.com/redirect",  // Required - URL where consumer will be redirected after completing the transaction
-  "backend_notify_url": "https://example.com/notify",      // Required - URL where your server receives transaction results (only port 443)
-  "go_back_url": "https://example.com/back"               // Optional - URL for 3D verification error cases (E.SUN, Cathay United, Taishin banks)
-}
-```
-
-- `frontend_redirect_url` (String): After the consumer completes the transaction process in LINE Pay, JKOPAY, 悠遊付, Atome, Pi錢包, 全盈支付, or 3D verification, they will be redirected to this frontend URL. Must start with https.
-
-- `backend_notify_url` (String): URL where your server receives transaction results. Must start with https and only supports port 443.
-
-- `go_back_url` (String): For 3D verification transactions, this URL is used when consumers are redirected to the TapPay Error page due to improper operation. This scenario only occurs with E.SUN Bank, Cathay United Bank, and Taishin Bank. You can define this URL in the transaction request or set it in TapPay Portal > Developer Content > System Settings > Redirect Link Settings. It's strongly recommended to define this field for 3D transactions to ensure consumers can return to complete the transaction or view results.
 
 ## Usage
 
-### Pay by Prime
-
-Use this method when the customer wants to pay with their credit card without storing the card information. The customer will need to enter their card information for each transaction.
+### Credit Card Payment
 
 ```ruby
-# Basic payment with prime
+# One-time payment
 result = Tappay::CreditCard::Pay.by_prime(
   prime: 'prime_from_tappay_sdk',
-  amount: 100,
-  order_number: 'ORDER-123',
-  currency: 'TWD',
-  three_domain_secure: true,  # Enable 3D secure if needed
-  remember: true,  # Set to true if you want to store the card for future payments
-  card_holder: card_holder  # Optional cardholder information
-)
-
-if result['status'] == 0
-  # Payment successful
-  transaction_id = result['rec_trade_id']
-  if result['card_secret']
-    # If remember is true, you'll get these tokens
-    card_key = result['card_secret']['card_key']
-    card_token = result['card_secret']['card_token']
-    # Store card_key and card_token securely for future payments
-  end
-
-  # Handle payment URL if present (for 3D Secure, LINE Pay, JKO Pay)
-  if result['payment_url']
-    redirect_to result['payment_url']
-  end
-end
-```
-
-### Pay by Token
-
-Use this method when the customer has opted to save their card information for future purchases. This provides a more convenient checkout experience as customers don't need to re-enter their card information.
-
-```ruby
-# Recurring payment with stored card token
-result = Tappay::CreditCard::Pay.by_token(
-  card_key: 'stored_card_key',
-  card_token: 'stored_card_token',
-  amount: 100,
-  order_number: 'ORDER-124',
-  currency: 'TWD',
-  three_domain_secure: true,  # Enable 3D secure if needed
-  card_holder: card_holder  # Optional cardholder information
-)
-
-if result['status'] == 0
-  # Payment successful
-  transaction_id = result['rec_trade_id']
-end
-```
-
-### Instalment Payment
-
-```ruby
-payment = Tappay::CreditCard::Instalment.new(
-  prime: 'prime_from_tappay_sdk',
-  amount: 10000,
-  instalment: 6,  # 6 monthly installments
-  details: 'Product description',
+  amount: 1000,
+  details: 'Order Details',
   cardholder: {
-    phone_number: '+886923456789',
-    name: 'John Doe',
-    email: 'john@example.com'
+    phone_number: '0912345678',
+    name: 'Test User',
+    email: 'test@example.com'
   }
 )
 
-begin
-  result = payment.execute
-  if result['status'] == 0
-    # Payment successful
-    instalment_info = result['instalment_info']
-    number_of_instalments = instalment_info['number_of_instalments']
-    first_payment = instalment_info['first_payment']
-    each_payment = instalment_info['each_payment']
-
-    # Handle payment URL if present (for 3D Secure)
-    if result['payment_url']
-      redirect_to result['payment_url']
-    end
-  end
-rescue Tappay::PaymentError => e
-  # Handle payment error
-end
+# Instalment payment (3-30 months)
+result = Tappay::CreditCard::Instalment.by_prime(
+  prime: 'prime_from_tappay_sdk',
+  amount: 1000,
+  instalment: 12,  # 12 months instalment
+  details: 'Order Details',
+  cardholder: {
+    phone_number: '0912345678',
+    name: 'Test User',
+    email: 'test@example.com'
+  }
+)
 ```
 
-### Refund Processing
+### Line Pay
 
 ```ruby
-refund = Tappay::CreditCard::Refund.new(
-  transaction_id: 'transaction_id_from_payment',
-  amount: 100
-)
-
-begin
-  result = refund.execute
-  if result['status'] == 0
-    # Refund successful
-  end
-rescue Tappay::RefundError => e
-  # Handle refund error
-end
+# Create Line Pay payment
+result = Tappay::LinePay::Pay.new(
+  prime: 'line_pay_prime',
+  amount: 1000,
+  details: 'Order Details',
+  frontend_redirect_url: 'https://example.com/line_pay/result',
+  backend_notify_url: 'https://example.com/line_pay/notify'
+).execute
 ```
 
 ### Error Handling
+
+The gem provides comprehensive error handling:
 
 ```ruby
 begin
@@ -334,48 +185,21 @@ begin
     amount: 100,
     order_number: 'ORDER-123'
   )
-rescue Tappay::PaymentError => e
-  # Handle payment error
-  puts e.message
 rescue Tappay::ValidationError => e
-  # Handle validation error
-  puts e.message
+  # Handle validation errors (e.g., missing required fields)
+  puts "Validation error: #{e.message}"
+rescue Tappay::APIError => e
+  # Handle API errors (e.g., invalid prime, insufficient balance)
+  puts "API error: #{e.message}"
+rescue Tappay::Error => e
+  # Handle other TapPay errors
+  puts "TapPay error: #{e.message}"
 end
-```
-
-### Example Usage with result_url
-
-```ruby
-# Example of payment with result_url for LINE Pay
-result = Tappay::LinePay::Pay.create(
-  prime: 'prime_from_tappay_sdk',
-  amount: 100,
-  merchant_id: 'your_merchant_id',
-  details: 'Product Item',
-  result_url: {
-    frontend_redirect_url: 'https://example.com/payment/complete',
-    backend_notify_url: 'https://example.com/payment/notify',
-    go_back_url: 'https://example.com/payment/error'
-  }
-)
-
-# Example of payment with result_url for 3D verification
-result = Tappay::CreditCard::Pay.by_prime(
-  prime: 'prime_from_tappay_sdk',
-  amount: 100,
-  merchant_id: 'your_merchant_id',
-  three_domain_secure: true,
-  result_url: {
-    frontend_redirect_url: 'https://example.com/3d/complete',
-    backend_notify_url: 'https://example.com/3d/notify',
-    go_back_url: 'https://example.com/3d/error'
-  }
-)
 ```
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests.
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
 ## Contributing
 

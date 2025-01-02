@@ -22,6 +22,10 @@ module Tappay
 
       private
 
+      def get_merchant_id
+        Tappay.configuration.line_pay_merchant_id || super
+      end
+
       def additional_required_options
         [:prime, :frontend_redirect_url, :backend_notify_url]
       end
