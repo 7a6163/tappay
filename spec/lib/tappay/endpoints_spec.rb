@@ -104,18 +104,4 @@ RSpec.describe Tappay::Endpoints do
       end
     end
   end
-
-  describe Tappay::Endpoints::LinePay do
-    let(:base_url) { 'https://sandbox.tappaysdk.com' }
-
-    before do
-      allow(Tappay::Endpoints).to receive(:base_url).and_return(base_url)
-    end
-
-    describe '.redirect_url' do
-      it 'returns correct URL' do
-        expect(described_class.redirect_url).to eq("#{base_url}/tpc/payment/redirect")
-      end
-    end
-  end
 end

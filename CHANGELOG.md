@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.1] - 2025-01-02
+
+### Changed
+- Removed unused redirect_url endpoint from Payment module
+- Improved code organization by removing redundant endpoints
+
 ## [0.7.0] - 2025-01-02
 
 ### Added

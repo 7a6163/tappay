@@ -59,17 +59,5 @@ module Tappay
         end
       end
     end
-
-    module LinePay
-      class << self
-        def redirect_url
-          "#{Endpoints.base_url}/tpc/payment/redirect"
-        end
-
-        def query_url
-          "#{Endpoints.base_url}/tpc/transaction/query"
-        end
-      end
-    end
   end
 end
