@@ -34,6 +34,10 @@ module Tappay
       private
 
       def get_merchant_id
+        # If merchant_group_id is set, it takes precedence
+        return nil if Tappay.configuration.merchant_group_id
+        
+        # Otherwise, use instalment_merchant_id or fall back to default merchant_id
         Tappay.configuration.instalment_merchant_id || super
       end
 
@@ -75,6 +79,10 @@ module Tappay
       private
 
       def get_merchant_id
+        # If merchant_group_id is set, it takes precedence
+        return nil if Tappay.configuration.merchant_group_id
+        
+        # Otherwise, use instalment_merchant_id or fall back to default merchant_id
         Tappay.configuration.instalment_merchant_id || super
       end
 

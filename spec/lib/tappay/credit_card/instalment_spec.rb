@@ -107,6 +107,28 @@ RSpec.describe Tappay::CreditCard::Instalment do
         end
       end
     end
+
+    describe '#validate_instalment!' do
+      context 'with valid instalment values' do
+        it 'does not raise error for valid values' do
+          [0, 3, 6, 12, 18, 24, 30].each do |instalment|
+            expect {
+              described_class.new(valid_options.merge(instalment: instalment))
+            }.not_to raise_error
+          end
+        end
+      end
+
+      context 'with invalid instalment values' do
+        it 'raises error for invalid values' do
+          [1, 2, 4, 5, 7, 8, 9, 10, 11, 13, 15, 16, 20, 25, 36, 40].each do |instalment|
+            expect {
+              described_class.new(valid_options.merge(instalment: instalment))
+            }.to raise_error(Tappay::ValidationError, /Instalment must be one of: 0, 3, 6, 12, 18, 24, 30/)
+          end
+        end
+      end
+    end
   end
 
   describe Tappay::CreditCard::InstalmentByToken do
@@ -179,6 +201,28 @@ RSpec.describe Tappay::CreditCard::Instalment do
       context 'when result_url has both required URLs' do
         it 'does not raise error' do
           expect { described_class.new(token_options) }.not_to raise_error
+        end
+      end
+    end
+
+    describe '#validate_instalment!' do
+      context 'with valid instalment values' do
+        it 'does not raise error for valid values' do
+          [0, 3, 6, 12, 18, 24, 30].each do |instalment|
+            expect {
+              described_class.new(token_options.merge(instalment: instalment))
+            }.not_to raise_error
+          end
+        end
+      end
+
+      context 'with invalid instalment values' do
+        it 'raises error for invalid values' do
+          [1, 2, 4, 5, 7, 8, 9, 10, 11, 13, 15, 16, 20, 25, 36, 40].each do |instalment|
+            expect {
+              described_class.new(token_options.merge(instalment: instalment))
+            }.to raise_error(Tappay::ValidationError, /Instalment must be one of: 0, 3, 6, 12, 18, 24, 30/)
+          end
         end
       end
     end

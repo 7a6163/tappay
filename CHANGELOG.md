@@ -1,15 +1,29 @@
 # Changelog
 
+## [0.11.0] - 2025-01-02
+
+### Changed
+- Updated instalment periods to support correct values: 0 (no instalment), 3, 6, 12, 18, 24, 30 months
+- Fixed instalment validation in tests to match actual supported periods
+- Removed support for 36 months instalment period
+
 ## [0.10.0] - 2025-01-02
 
 ### Added
 - Added support for `merchant_group_id` in payment processing
 - Added ability to use either `merchant_id` or `merchant_group_id` for merchant identification
+- Added support for 18 months instalment period
 
 ### Changed
 - Modified payment validation to accept either `merchant_id` or `merchant_group_id`
 - Updated configuration validation to support flexible merchant identification
-- Improved payment data handling to prioritize `merchant_group_id` over `merchant_id`
+- Improved payment data handling to prioritize `merchant_group_id` over all other merchant IDs
+- When `merchant_group_id` is set, it now takes precedence over `line_pay_merchant_id`, `jko_pay_merchant_id`, and `instalment_merchant_id`
+- Updated instalment validation to support periods: 0 (no instalment), 3, 6, 12, 18, 24, 30 months
+- Enhanced error messages to clearly list all valid instalment options
+- Improved instalment validation to only allow specific values: 0 (no instalment), 3, 6, 12, 18, 24, 30 months
+- Enhanced error messages to clearly list all valid instalment options
+- Updated tests to cover all valid and invalid instalment scenarios
 
 ## [0.9.0] - 2025-01-02
 

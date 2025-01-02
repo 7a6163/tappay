@@ -10,12 +10,13 @@ A Ruby library for integrating with TapPay payment services. This gem provides a
 
 - Multiple payment methods:
   - Credit card payments (one-time and tokenized)
-  - Instalment payments (3, 6, 12, 24 and 36 months)
+  - Instalment payments (3, 6, 12, 18, 24, 30 months)
   - Line Pay
   - JKO Pay
 - Flexible merchant identification:
   - Support for both `merchant_id` and `merchant_group_id`
   - Automatic fallback handling
+  - Priority-based merchant ID resolution
 - Refund processing
 - Transaction status queries
 - Comprehensive error handling
@@ -53,91 +54,37 @@ The simplest way to configure the gem:
 
 ```ruby
 Tappay.configure do |config|
-  # Environment settings
-  config.mode = Rails.env.production? ? :production : :sandbox
+  config.partner_key = 'YOUR_PARTNER_KEY'
 
-  # Common settings
-  config.partner_key = 'your_partner_key'.freeze
-  config.app_id = 'your_app_id'.freeze
-
-  # Merchant settings (use either merchant_id or merchant_group_id, not both)
-  config.merchant_id = 'your_merchant_id'.freeze
+  # Primary merchant identification
+  # You can use either merchant_id or merchant_group_id
+  config.merchant_id = 'YOUR_MERCHANT_ID'
   # OR
-  config.merchant_group_id = 'your_merchant_group_id'.freeze
+  config.merchant_group_id = 'YOUR_MERCHANT_GROUP_ID'
 
-  # Payment-specific merchant IDs
-  config.instalment_merchant_id = 'your_instalment_merchant_id'.freeze
-  config.line_pay_merchant_id = 'your_line_pay_merchant_id'.freeze
-  config.jko_pay_merchant_id = 'your_jko_pay_merchant_id'.freeze
+  # Optional merchant IDs for specific payment methods
+  # Note: These will be ignored if merchant_group_id is set
+  config.jko_pay_merchant_id = 'YOUR_JKO_PAY_MERCHANT_ID'
+  config.line_pay_merchant_id = 'YOUR_LINE_PAY_MERCHANT_ID'
+  config.instalment_merchant_id = 'YOUR_INSTALMENT_MERCHANT_ID'
 
-  config.currency = 'TWD'.freeze
-  config.vat_number = 'your_vat_number'.freeze
+  config.mode = :sandbox # or :production
 end
 ```
 
-Note: When both `merchant_id` and `merchant_group_id` are provided, `merchant_group_id` will be used for payment processing.
+### Merchant ID Resolution
 
-### Merchant ID Configuration
+The gem uses the following priority order when resolving merchant IDs:
 
-The gem supports flexible merchant ID configuration:
+1. If `merchant_group_id` is set (either in configuration or options):
+   - Uses `merchant_group_id` for all payment types
+   - Ignores all other merchant IDs (including specific ones for Line Pay, JKO Pay, etc.)
 
-1. Global merchant ID:
-   - `merchant_id`: Default merchant ID for all payments
-   - `merchant_group_id`: Group merchant ID (mutually exclusive with merchant_id)
-
-2. Payment-specific merchant IDs:
-   - `instalment_merchant_id`: Specific merchant ID for instalment payments
-   - `line_pay_merchant_id`: Specific merchant ID for Line Pay transactions
-   - `jko_pay_merchant_id`: Specific merchant ID for JKO Pay transactions
-
-Merchant ID Priority:
-1. Payment options merchant ID (if provided in the payment call)
-2. Payment-specific merchant ID (if configured)
-3. Global merchant ID
-
-Example of merchant ID usage:
-```ruby
-# Using default merchant ID
-result = Tappay::CreditCard::Pay.by_prime(
-  prime: 'prime_from_tappay_sdk',
-  amount: 100,
-  order_number: 'ORDER-123'
-)
-
-# Using payment-specific merchant ID
-# This will automatically use line_pay_merchant_id if configured
-result = Tappay::LinePay::Pay.new(
-  prime: 'line_pay_prime',
-  amount: 100,
-  frontend_redirect_url: 'https://example.com/line_pay/result',
-  backend_notify_url: 'https://example.com/line_pay/notify'
-).execute
-
-# Overriding merchant ID in payment options
-result = Tappay::CreditCard::Pay.by_prime(
-  prime: 'prime_from_tappay_sdk',
-  amount: 100,
-  merchant_id: 'override_merchant_id',  # This takes highest priority
-  order_number: 'ORDER-123'
-)
-```
-
-### 2. Using Environment Variables
-
-For better security, you can use environment variables:
-
-```ruby
-Tappay.configure do |config|
-  config.mode = Rails.env.production? ? :production : :sandbox
-  config.partner_key = ENV['TAPPAY_PARTNER_KEY'].freeze
-  config.app_id = ENV['TAPPAY_APP_ID'].freeze
-  config.merchant_id = ENV['TAPPAY_MERCHANT_ID'].freeze
-  config.line_pay_merchant_id = ENV['TAPPAY_LINE_PAY_MERCHANT_ID'].freeze
-  config.instalment_merchant_id = ENV['TAPPAY_INSTALMENT_MERCHANT_ID'].freeze
-  config.jko_pay_merchant_id = ENV['TAPPAY_JKO_PAY_MERCHANT_ID'].freeze
-  # ... other configurations
-end
-```
+2. If `merchant_group_id` is not set:
+   - For Line Pay: Uses `line_pay_merchant_id` if set, otherwise falls back to `merchant_id`
+   - For JKO Pay: Uses `jko_pay_merchant_id` if set, otherwise falls back to `merchant_id`
+   - For Instalments: Uses `instalment_merchant_id` if set, otherwise falls back to `merchant_id`
+   - For other payment types: Uses `merchant_id`
 
 ## Usage
 

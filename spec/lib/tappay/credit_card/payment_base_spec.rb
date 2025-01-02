@@ -302,7 +302,7 @@ RSpec.describe Tappay::PaymentBase do
 
   describe '#validate_instalment!' do
     context 'with valid instalment values' do
-      [0, 3, 6, 12, 24, 30].each do |value|
+      [0, 3, 6, 12, 18, 24, 30].each do |value|
         context "when instalment is #{value}" do
           let(:options) { valid_options.merge(instalment: value) }
           subject { concrete_class.new(options) }
@@ -315,14 +315,14 @@ RSpec.describe Tappay::PaymentBase do
     end
 
     context 'with invalid instalment value' do
-      [1, 2, 4, 5, 7, 8, 9, 10, 11, 13, 15, 18, 20, 36].each do |value|
+      [1, 2, 4, 5, 7, 8, 9, 10, 11, 13, 15, 16, 20, 25, 36, 40].each do |value|
         context "when instalment is #{value}" do
           let(:options) { valid_options.merge(instalment: value) }
           subject { concrete_class.new(options) }
 
           it 'raises ValidationError' do
             expect { subject.send(:validate_instalment!) }
-              .to raise_error(Tappay::ValidationError, "Instalment must be one of: 0, 3, 6, 12, 24, 30")
+              .to raise_error(Tappay::ValidationError, "Instalment must be one of: 0, 3, 6, 12, 18, 24, 30")
           end
         end
       end
@@ -334,7 +334,7 @@ RSpec.describe Tappay::PaymentBase do
 
       it 'raises ValidationError' do
         expect { subject.send(:validate_instalment!) }
-          .to raise_error(Tappay::ValidationError, "Instalment must be one of: 0, 3, 6, 12, 24, 30")
+          .to raise_error(Tappay::ValidationError, "Instalment must be one of: 0, 3, 6, 12, 18, 24, 30")
       end
     end
 
