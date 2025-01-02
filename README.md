@@ -12,6 +12,7 @@ A Ruby library for integrating with TapPay payment services. This gem provides a
   - Credit card payments (one-time and tokenized)
   - Instalment payments (3 to 24 months)
   - Line Pay
+  - JKO Pay
 - Refund processing
 - Transaction status queries
 - Comprehensive error handling
@@ -64,6 +65,7 @@ Tappay.configure do |config|
   # Payment-specific merchant IDs
   config.instalment_merchant_id = 'your_instalment_merchant_id'.freeze
   config.line_pay_merchant_id = 'your_line_pay_merchant_id'.freeze
+  config.jko_pay_merchant_id = 'your_jko_pay_merchant_id'.freeze
 
   config.currency = 'TWD'.freeze
   config.vat_number = 'your_vat_number'.freeze
@@ -81,6 +83,7 @@ The gem supports flexible merchant ID configuration:
 2. Payment-specific merchant IDs:
    - `instalment_merchant_id`: Specific merchant ID for instalment payments
    - `line_pay_merchant_id`: Specific merchant ID for Line Pay transactions
+   - `jko_pay_merchant_id`: Specific merchant ID for JKO Pay transactions
 
 Merchant ID Priority:
 1. Payment options merchant ID (if provided in the payment call)
@@ -126,6 +129,7 @@ Tappay.configure do |config|
   config.merchant_id = ENV['TAPPAY_MERCHANT_ID'].freeze
   config.line_pay_merchant_id = ENV['TAPPAY_LINE_PAY_MERCHANT_ID'].freeze
   config.instalment_merchant_id = ENV['TAPPAY_INSTALMENT_MERCHANT_ID'].freeze
+  config.jko_pay_merchant_id = ENV['TAPPAY_JKO_PAY_MERCHANT_ID'].freeze
   # ... other configurations
 end
 ```
@@ -172,6 +176,35 @@ result = Tappay::LinePay::Pay.new(
   frontend_redirect_url: 'https://example.com/line_pay/result',
   backend_notify_url: 'https://example.com/line_pay/notify'
 ).execute
+```
+
+### JKO Pay
+
+#### Configuration
+
+```ruby
+Tappay.configure do |config|
+  config.partner_key = 'YOUR_PARTNER_KEY'
+  config.merchant_id = 'YOUR_MERCHANT_ID'
+  config.jko_pay_merchant_id = 'YOUR_JKO_PAY_MERCHANT_ID' # Optional, falls back to merchant_id if not set
+  config.sandbox = true # Set to false for production
+end
+```
+
+#### Processing a JKO Pay Payment
+
+```ruby
+payment_options = {
+  prime: 'jko_pay_prime',
+  merchant_id: 'YOUR_MERCHANT_ID',
+  amount: 1000,
+  details: 'Some item',
+  frontend_redirect_url: 'https://your-site.com/jko_pay/result',
+  backend_notify_url: 'https://your-site.com/jko_pay/notify'
+}
+
+payment = Tappay::JkoPay::Pay.new(payment_options)
+result = payment.execute
 ```
 
 ### Error Handling
