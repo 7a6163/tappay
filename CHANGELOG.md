@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.0] - 2025-01-08
+
+### Changed
+- Removed unnecessary `remember` parameter from LinePay and JkoPay implementations
+- Moved `payment_data` method to protected scope in payment classes for better encapsulation
+- Simplified LinePay implementation by removing redundant `by_prime` method
+- Improved code organization and reduced duplication in payment classes
+
 ## [0.11.0] - 2025-01-02
 
 ### Changed
