@@ -23,12 +23,17 @@ module Tappay
       end
 
       def validate_jko_pay_options!
-        validate_result_urls!
+        validate_required_options!
       end
 
-      def validate_result_urls!
+      def validate_required_options!
         raise ValidationError, 'frontend_redirect_url is required for JKO Pay' if options[:frontend_redirect_url].nil?
         raise ValidationError, 'backend_notify_url is required for JKO Pay' if options[:backend_notify_url].nil?
+        raise ValidationError, 'prime is required for JKO Pay' if options[:prime].nil?
+      end
+
+      def additional_required_options
+        [:prime, :frontend_redirect_url, :backend_notify_url]
       end
 
       protected
