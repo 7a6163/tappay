@@ -86,6 +86,17 @@ RSpec.describe Tappay::LinePay::Pay do
         expect(payment.send(:get_merchant_id)).to be_nil
       end
     end
+
+    context 'when both merchant_group_id and line_pay_merchant_id are configured' do
+      before do
+        allow(Tappay.configuration).to receive(:merchant_group_id).and_return('GROUP_ID')
+        allow(Tappay.configuration).to receive(:line_pay_merchant_id).and_return('LINE_PAY_MERCHANT')
+      end
+
+      it 'returns nil due to merchant_group_id taking precedence' do
+        expect(payment.send(:get_merchant_id)).to be_nil
+      end
+    end
   end
 
   describe '#payment_data' do

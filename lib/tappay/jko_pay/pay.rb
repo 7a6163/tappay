@@ -3,11 +3,6 @@
 module Tappay
   module JkoPay
     class Pay < PaymentBase
-      def initialize(options = {})
-        super
-        validate_jko_pay_options!
-      end
-
       def endpoint_url
         Endpoints::Payment.pay_by_prime_url
       end
@@ -20,16 +15,6 @@ module Tappay
 
         # Otherwise, use jko_pay_merchant_id or fall back to default merchant_id
         Tappay.configuration.jko_pay_merchant_id || super
-      end
-
-      def validate_jko_pay_options!
-        validate_required_options!
-      end
-
-      def validate_required_options!
-        raise ValidationError, 'frontend_redirect_url is required for JKO Pay' if options[:frontend_redirect_url].nil?
-        raise ValidationError, 'backend_notify_url is required for JKO Pay' if options[:backend_notify_url].nil?
-        raise ValidationError, 'prime is required for JKO Pay' if options[:prime].nil?
       end
 
       def additional_required_options

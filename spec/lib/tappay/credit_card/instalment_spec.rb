@@ -129,6 +129,43 @@ RSpec.describe Tappay::CreditCard::Instalment do
         end
       end
     end
+
+    describe '#get_merchant_id' do
+      context 'when merchant_group_id is configured' do
+        before do
+          allow(Tappay.configuration).to receive(:merchant_group_id).and_return('GROUP_ID')
+          allow(Tappay.configuration).to receive(:instalment_merchant_id).and_return('INSTALMENT_MERCHANT')
+        end
+
+        it 'returns nil' do
+          expect(described_class.new(valid_options).send(:get_merchant_id)).to be_nil
+        end
+      end
+
+      context 'when instalment_merchant_id is configured' do
+        before do
+          allow(Tappay.configuration).to receive(:merchant_group_id).and_return(nil)
+          allow(Tappay.configuration).to receive(:instalment_merchant_id).and_return('INSTALMENT_MERCHANT')
+          allow(Tappay.configuration).to receive(:merchant_id).and_return('DEFAULT_MERCHANT')
+        end
+
+        it 'returns instalment_merchant_id' do
+          expect(described_class.new(valid_options).send(:get_merchant_id)).to eq('INSTALMENT_MERCHANT')
+        end
+      end
+
+      context 'when neither merchant_group_id nor instalment_merchant_id is configured' do
+        before do
+          allow(Tappay.configuration).to receive(:merchant_group_id).and_return(nil)
+          allow(Tappay.configuration).to receive(:instalment_merchant_id).and_return(nil)
+          allow(Tappay.configuration).to receive(:merchant_id).and_return('DEFAULT_MERCHANT')
+        end
+
+        it 'returns default merchant_id' do
+          expect(described_class.new(valid_options).send(:get_merchant_id)).to eq('DEFAULT_MERCHANT')
+        end
+      end
+    end
   end
 
   describe Tappay::CreditCard::InstalmentByToken do
@@ -203,6 +240,21 @@ RSpec.describe Tappay::CreditCard::Instalment do
           expect { described_class.new(token_options) }.not_to raise_error
         end
       end
+
+      context 'when result_url has nil values' do
+        let(:invalid_result_url) do
+          {
+            frontend_redirect_url: nil,
+            backend_notify_url: nil
+          }
+        end
+        let(:invalid_options) { token_options.merge(result_url: invalid_result_url) }
+
+        it 'raises ValidationError' do
+          expect { described_class.new(invalid_options) }
+            .to raise_error(Tappay::ValidationError, /result_url with frontend_redirect_url and backend_notify_url is required for instalment payments/)
+        end
+      end
     end
 
     describe '#validate_instalment!' do
@@ -223,6 +275,43 @@ RSpec.describe Tappay::CreditCard::Instalment do
               described_class.new(token_options.merge(instalment: instalment))
             }.to raise_error(Tappay::ValidationError, /Instalment must be one of: 0, 3, 6, 12, 18, 24, 30/)
           end
+        end
+      end
+    end
+
+    describe '#get_merchant_id' do
+      context 'when merchant_group_id is configured' do
+        before do
+          allow(Tappay.configuration).to receive(:merchant_group_id).and_return('GROUP_ID')
+          allow(Tappay.configuration).to receive(:instalment_merchant_id).and_return('INSTALMENT_MERCHANT')
+        end
+
+        it 'returns nil' do
+          expect(described_class.new(token_options).send(:get_merchant_id)).to be_nil
+        end
+      end
+
+      context 'when instalment_merchant_id is configured' do
+        before do
+          allow(Tappay.configuration).to receive(:merchant_group_id).and_return(nil)
+          allow(Tappay.configuration).to receive(:instalment_merchant_id).and_return('INSTALMENT_MERCHANT')
+          allow(Tappay.configuration).to receive(:merchant_id).and_return('DEFAULT_MERCHANT')
+        end
+
+        it 'returns instalment_merchant_id' do
+          expect(described_class.new(token_options).send(:get_merchant_id)).to eq('INSTALMENT_MERCHANT')
+        end
+      end
+
+      context 'when neither merchant_group_id nor instalment_merchant_id is configured' do
+        before do
+          allow(Tappay.configuration).to receive(:merchant_group_id).and_return(nil)
+          allow(Tappay.configuration).to receive(:instalment_merchant_id).and_return(nil)
+          allow(Tappay.configuration).to receive(:merchant_id).and_return('DEFAULT_MERCHANT')
+        end
+
+        it 'returns default merchant_id' do
+          expect(described_class.new(token_options).send(:get_merchant_id)).to eq('DEFAULT_MERCHANT')
         end
       end
     end
@@ -370,6 +459,25 @@ RSpec.describe Tappay::CreditCard::Instalment do
 
       it 'does not raise error' do
         expect { subject.send(:validate_result_url_for_instalment!) }.not_to raise_error
+      end
+    end
+
+    context 'with result_url containing nil values' do
+      subject do
+        Tappay::CreditCard::InstalmentByPrime.new(
+          base_options.merge(
+            prime: 'test_prime',
+            result_url: {
+              frontend_redirect_url: nil,
+              backend_notify_url: nil
+            }
+          )
+        )
+      end
+
+      it 'raises ValidationError' do
+        expect { subject.send(:validate_result_url_for_instalment!) }
+          .to raise_error(Tappay::ValidationError, /result_url.*required for instalment payments/)
       end
     end
   end
