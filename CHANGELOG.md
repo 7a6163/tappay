@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1] - 2025-01-12
+
+### Changed
+- Improved test coverage to achieve 100% branch coverage
+- Added test cases for result_url validation with nil values
+- Enhanced test coverage for merchant ID handling in instalment payments
+
 ## [0.12.0] - 2025-01-08
 
 ### Changed
