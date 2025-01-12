@@ -287,6 +287,23 @@ RSpec.describe Tappay::PaymentBase do
           expect { subject.send(:validate_result_url!) }.not_to raise_error
         end
       end
+
+      context 'with result_url using string keys' do
+        let(:options) do
+          valid_options.merge(
+            three_domain_secure: true,
+            result_url: {
+              'frontend_redirect_url' => 'https://example.com/redirect',
+              'backend_notify_url' => 'https://example.com/notify'
+            }
+          )
+        end
+        subject { concrete_class.new(options) }
+
+        it 'accepts string keys' do
+          expect { subject.send(:validate_result_url!) }.not_to raise_error
+        end
+      end
     end
 
     context 'when three_domain_secure is false' do
