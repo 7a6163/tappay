@@ -10,6 +10,13 @@ RSpec.describe Tappay::LinePay::Pay do
   let(:payment_url) { 'https://sandbox.tappaysdk.com/tpc/payment/pay-by-prime' }
   let(:frontend_redirect_url) { 'https://example.com/line_pay/result' }
   let(:backend_notify_url) { 'https://example.com/line_pay/notify' }
+  let(:cardholder) do
+    Tappay::CardHolder.new(
+      name: 'John Doe',
+      email: 'john@example.com',
+      phone_number: '+886912345678'
+    )
+  end
 
   let(:payment_options) do
     {
@@ -18,7 +25,8 @@ RSpec.describe Tappay::LinePay::Pay do
       merchant_id: merchant_id,
       prime: prime,
       frontend_redirect_url: frontend_redirect_url,
-      backend_notify_url: backend_notify_url
+      backend_notify_url: backend_notify_url,
+      cardholder: cardholder
     }
   end
 
@@ -169,6 +177,12 @@ RSpec.describe Tappay::LinePay::Pay do
       options = payment_options.reject { |k| k == :prime }
       expect { described_class.new(options) }
         .to raise_error(Tappay::ValidationError, /prime/)
+    end
+
+    it 'raises error when cardholder is missing' do
+      options = payment_options.reject { |k| k == :cardholder }
+      expect { described_class.new(options) }
+        .to raise_error(Tappay::ValidationError, /cardholder/)
     end
   end
 
