@@ -18,7 +18,7 @@ module Tappay
       end
 
       def additional_required_options
-        [:prime, :frontend_redirect_url, :backend_notify_url]
+        [:prime, :frontend_redirect_url, :backend_notify_url, :cardholder]
       end
 
       protected

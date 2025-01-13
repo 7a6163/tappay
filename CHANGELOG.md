@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.13.0] - 2025-01-13
+
+### Changed
+- Made cardholder a required field for Line Pay and JKO Pay implementations
+- Enhanced validation to ensure cardholder information (name, email, phone_number) is provided for these payment methods
+
 ## [0.12.1] - 2025-01-12
 
 ### Changed
