@@ -13,6 +13,7 @@ A Ruby library for integrating with TapPay payment services. This gem provides a
   - Instalment payments (3, 6, 12, 18, 24, 30 months)
   - Line Pay
   - JKO Pay
+  - Apple Pay
 - Flexible merchant identification:
   - Support for both `merchant_id` and `merchant_group_id`
   - Automatic fallback handling
