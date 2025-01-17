@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0] - 2025-01-17
+
+### Added
+- Added Apple Pay support with dedicated merchant ID handling
+- Added support for Apple Pay payment processing
+- Added comprehensive test coverage for Apple Pay implementation
+
 ## [0.13.0] - 2025-01-13
 
 ### Changed

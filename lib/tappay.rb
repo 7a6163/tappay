@@ -18,6 +18,7 @@ require_relative "tappay/credit_card/refund"
 require_relative "tappay/credit_card/instalment"
 require_relative "tappay/line_pay/pay"
 require_relative "tappay/jko_pay/pay"
+require_relative "tappay/apple_pay/pay"
 
 module Tappay
   class Error < StandardError; end
