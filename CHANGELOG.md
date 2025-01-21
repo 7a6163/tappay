@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.14.1] - 2025-01-21
+
+### Added
+- Added RSpec test coverage for Google Pay implementation
+
 ## [0.14.0] - 2025-01-17
 
 ### Added
