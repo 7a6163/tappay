@@ -2,13 +2,13 @@
 
 require 'spec_helper'
 
-RSpec.describe Tappay::CreditCard::Refund do
+RSpec.describe Tappay::Refund do
   let(:rec_trade_id) { 'TEST_TRANSACTION_123' }
   let(:amount) { 1000 }
   let(:refund_url) { 'https://sandbox.tappaysdk.com/tpc/transaction/refund' }
 
   before do
-    allow(Tappay::Endpoints::CreditCard).to receive(:refund_url).and_return(refund_url)
+    allow(Tappay::Endpoints).to receive(:refund_url).and_return(refund_url)
   end
 
   describe '#initialize' do
@@ -58,24 +58,26 @@ RSpec.describe Tappay::CreditCard::Refund do
       )
     end
 
-    let(:response) { { 'status' => 0, 'msg' => 'Success' } }
+    let(:response) { double('response') }
 
     before do
-      allow_any_instance_of(Tappay::Client).to receive(:post).and_return(response)
+      allow(refund).to receive(:post).and_return(response)
     end
 
-    it 'sends the correct refund data' do
-      expected_data = {
-        partner_key: Tappay.configuration.partner_key,
-        rec_trade_id: rec_trade_id,
-        amount: amount
-      }
+    it 'calls post with correct parameters' do
+      expect(refund).to receive(:post).with(
+        refund_url,
+        {
+          partner_key: Tappay.configuration.partner_key,
+          rec_trade_id: rec_trade_id,
+          amount: amount
+        }
+      )
 
-      expect_any_instance_of(Tappay::Client).to receive(:post).with(refund_url, expected_data)
       refund.execute
     end
 
-    it 'returns the response from the API' do
+    it 'returns response' do
       expect(refund.execute).to eq(response)
     end
   end

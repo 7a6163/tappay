@@ -18,7 +18,7 @@ A Ruby library for integrating with TapPay payment services. This gem provides a
   - Support for both `merchant_id` and `merchant_group_id`
   - Automatic fallback handling
   - Priority-based merchant ID resolution
-- Refund processing
+- Universal refund processing for all payment methods
 - Transaction status queries
 - Comprehensive error handling
 - Configurable sandbox/production environments
@@ -128,6 +128,18 @@ result = Tappay::LinePay::Pay.new(
   details: 'Order Details',
   frontend_redirect_url: 'https://example.com/line_pay/result',
   backend_notify_url: 'https://example.com/line_pay/notify'
+).execute
+```
+
+### Refund Processing
+
+Process refunds for any payment method:
+
+```ruby
+# Process a refund
+result = Tappay::Refund.new(
+  rec_trade_id: 'TRANSACTION_ID',
+  amount: 1000
 ).execute
 ```
 

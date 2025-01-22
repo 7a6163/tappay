@@ -3,12 +3,14 @@
 require 'spec_helper'
 
 RSpec.describe Tappay::Endpoints do
+  let(:base_url) { 'https://sandbox.tappaysdk.com' }
+
+  before do
+    allow(Tappay.configuration).to receive(:sandbox?).and_return(true)
+  end
+
   describe '.base_url' do
     context 'when in sandbox mode' do
-      before do
-        allow(Tappay.configuration).to receive(:sandbox?).and_return(true)
-      end
-
       it 'returns sandbox URL' do
         expect(described_class.base_url).to eq('https://sandbox.tappaysdk.com')
       end
@@ -25,9 +27,13 @@ RSpec.describe Tappay::Endpoints do
     end
   end
 
-  describe Tappay::Endpoints::Payment do
-    let(:base_url) { 'https://sandbox.tappaysdk.com' }
+  describe '.refund_url' do
+    it 'returns correct URL' do
+      expect(described_class.refund_url).to eq("#{base_url}/tpc/transaction/refund")
+    end
+  end
 
+  describe Tappay::Endpoints::Payment do
     before do
       allow(Tappay::Endpoints).to receive(:base_url).and_return(base_url)
     end
@@ -45,23 +51,7 @@ RSpec.describe Tappay::Endpoints do
     end
   end
 
-  describe Tappay::Endpoints::CreditCard do
-    let(:base_url) { 'https://sandbox.tappaysdk.com' }
-
-    before do
-      allow(Tappay::Endpoints).to receive(:base_url).and_return(base_url)
-    end
-
-    describe '.refund_url' do
-      it 'returns correct URL' do
-        expect(described_class.refund_url).to eq("#{base_url}/tpc/transaction/refund")
-      end
-    end
-  end
-
   describe Tappay::Endpoints::Transaction do
-    let(:base_url) { 'https://sandbox.tappaysdk.com' }
-
     before do
       allow(Tappay::Endpoints).to receive(:base_url).and_return(base_url)
     end
@@ -86,8 +76,6 @@ RSpec.describe Tappay::Endpoints do
   end
 
   describe Tappay::Endpoints::Bind do
-    let(:base_url) { 'https://sandbox.tappaysdk.com' }
-
     before do
       allow(Tappay::Endpoints).to receive(:base_url).and_return(base_url)
     end
