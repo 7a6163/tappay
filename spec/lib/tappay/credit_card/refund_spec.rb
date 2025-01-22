@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 RSpec.describe Tappay::CreditCard::Refund do
-  let(:transaction_id) { 'TEST_TRANSACTION_123' }
+  let(:rec_trade_id) { 'TEST_TRANSACTION_123' }
   let(:amount) { 1000 }
   let(:refund_url) { 'https://sandbox.tappaysdk.com/tpc/transaction/refund' }
 
@@ -15,7 +15,7 @@ RSpec.describe Tappay::CreditCard::Refund do
     context 'with valid options' do
       let(:refund) do
         described_class.new(
-          transaction_id: transaction_id,
+          rec_trade_id: rec_trade_id,
           amount: amount
         )
       end
@@ -25,18 +25,18 @@ RSpec.describe Tappay::CreditCard::Refund do
       end
     end
 
-    context 'with missing transaction_id' do
+    context 'with missing rec_trade_id' do
       it 'raises ValidationError' do
         expect {
           described_class.new(amount: amount)
-        }.to raise_error(Tappay::ValidationError, /Missing required options: transaction_id/)
+        }.to raise_error(Tappay::ValidationError, /Missing required options: rec_trade_id/)
       end
     end
 
     context 'with missing amount' do
       it 'raises ValidationError' do
         expect {
-          described_class.new(transaction_id: transaction_id)
+          described_class.new(rec_trade_id: rec_trade_id)
         }.to raise_error(Tappay::ValidationError, /Missing required options: amount/)
       end
     end
@@ -45,7 +45,7 @@ RSpec.describe Tappay::CreditCard::Refund do
       it 'raises ValidationError' do
         expect {
           described_class.new({})
-        }.to raise_error(Tappay::ValidationError, /Missing required options: transaction_id, amount/)
+        }.to raise_error(Tappay::ValidationError, /Missing required options: rec_trade_id, amount/)
       end
     end
   end
@@ -53,7 +53,7 @@ RSpec.describe Tappay::CreditCard::Refund do
   describe '#execute' do
     let(:refund) do
       described_class.new(
-        transaction_id: transaction_id,
+        rec_trade_id: rec_trade_id,
         amount: amount
       )
     end
@@ -67,7 +67,7 @@ RSpec.describe Tappay::CreditCard::Refund do
     it 'sends the correct refund data' do
       expected_data = {
         partner_key: Tappay.configuration.partner_key,
-        rec_trade_id: transaction_id,
+        rec_trade_id: rec_trade_id,
         amount: amount
       }
 
