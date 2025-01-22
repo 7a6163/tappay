@@ -10,6 +10,10 @@ module Tappay
           'https://prod.tappaysdk.com'
         end
       end
+
+      def refund_url
+        "#{base_url}/tpc/transaction/refund"
+      end
     end
 
     module Payment
@@ -20,14 +24,6 @@ module Tappay
 
         def pay_by_token_url
           "#{Endpoints.base_url}/tpc/payment/pay-by-token"
-        end
-      end
-    end
-
-    module CreditCard
-      class << self
-        def refund_url
-          "#{Endpoints.base_url}/tpc/transaction/refund"
         end
       end
     end

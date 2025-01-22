@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0] - 2025-01-22
+
+### Changed
+- Refactored refund functionality to be payment method agnostic
+- Moved refund endpoint from CreditCard module to top level
+- Simplified refund implementation for better maintainability
+
 ## [0.14.1] - 2025-01-21
 
 ### Added
