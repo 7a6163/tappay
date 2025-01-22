@@ -23,7 +23,7 @@ module Tappay
       # Prioritize merchant_group_id from options, then configuration
       merchant_group_id = options[:merchant_group_id] || Tappay.configuration.merchant_group_id
       merchant_id = options[:merchant_id] || get_merchant_id
-      
+
       # Determine which identifier to use
       identifier = if merchant_group_id
         { merchant_group_id: merchant_group_id }
@@ -83,7 +83,7 @@ module Tappay
     def get_merchant_id
       # If merchant_group_id is set, it takes precedence over all other merchant IDs
       return nil if Tappay.configuration.merchant_group_id
-      
+
       # Otherwise, return the default merchant_id
       Tappay.configuration.merchant_id
     end

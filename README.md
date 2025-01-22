@@ -49,27 +49,26 @@ $ gem install tappay_ruby
 
 There are several ways to configure the gem:
 
-### 1. Direct Configuration
-
-The simplest way to configure the gem:
+### Option 1: Using merchant_id
 
 ```ruby
+# Using merchant_id with optional payment-specific merchant IDs
 Tappay.configure do |config|
   config.partner_key = 'YOUR_PARTNER_KEY'
-
-  # Primary merchant identification
-  # You can use either merchant_id or merchant_group_id
   config.merchant_id = 'YOUR_MERCHANT_ID'
-  # OR
+  config.jko_pay_merchant_id = 'YOUR_JKO_PAY_MERCHANT_ID'  # Optional, falls back to merchant_id if not set
+  config.line_pay_merchant_id = 'YOUR_LINE_PAY_MERCHANT_ID'  # Optional, falls back to merchant_id if not set
+end
+```
+
+### Option 2: Using merchant_group_id
+
+```ruby
+# Using merchant_group_id (takes precedence over all other merchant IDs)
+Tappay.configure do |config|
+  config.partner_key = 'YOUR_PARTNER_KEY'
   config.merchant_group_id = 'YOUR_MERCHANT_GROUP_ID'
-
-  # Optional merchant IDs for specific payment methods
-  # Note: These will be ignored if merchant_group_id is set
-  config.jko_pay_merchant_id = 'YOUR_JKO_PAY_MERCHANT_ID'
-  config.line_pay_merchant_id = 'YOUR_LINE_PAY_MERCHANT_ID'
-  config.instalment_merchant_id = 'YOUR_INSTALMENT_MERCHANT_ID'
-
-  config.mode = :sandbox # or :production
+  # When merchant_group_id is set, all other merchant IDs will be ignored
 end
 ```
 
@@ -127,7 +126,12 @@ result = Tappay::LinePay::Pay.new(
   amount: 1000,
   details: 'Order Details',
   frontend_redirect_url: 'https://example.com/line_pay/result',
-  backend_notify_url: 'https://example.com/line_pay/notify'
+  backend_notify_url: 'https://example.com/line_pay/notify',
+  cardholder: {
+    phone_number: '0912345678',
+    name: 'Test User',
+    email: 'test@example.com'
+  }
 ).execute
 ```
 
@@ -162,11 +166,15 @@ end
 ```ruby
 payment_options = {
   prime: 'jko_pay_prime',
-  merchant_id: 'YOUR_MERCHANT_ID',
   amount: 1000,
   details: 'Some item',
   frontend_redirect_url: 'https://your-site.com/jko_pay/result',
-  backend_notify_url: 'https://your-site.com/jko_pay/notify'
+  backend_notify_url: 'https://your-site.com/jko_pay/notify',
+  cardholder: {
+    phone_number: '0912345678',
+    name: 'Test User',
+    email: 'test@example.com'
+  }
 }
 
 payment = Tappay::JkoPay::Pay.new(payment_options)

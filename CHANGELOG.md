@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.2] - 2025-01-22
+
+### Changed
+- Enhanced validation for PayByToken payment data
+- Improved handling of ccv_prime in InstallmentByToken
+- Added currency as required parameter for PayByToken
+- Improved test coverage for payment validation
+
 ## [0.15.1] - 2025-01-22
 
 ### Changed

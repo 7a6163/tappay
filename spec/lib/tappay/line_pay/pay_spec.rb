@@ -37,6 +37,10 @@ RSpec.describe Tappay::LinePay::Pay do
   end
 
   describe '#initialize' do
+    it 'validates required options' do
+      expect { described_class.new(payment_options) }.not_to raise_error
+    end
+
     context 'with merchant_group_id' do
       let(:merchant_group_id) { 'TEST_GROUP' }
       let(:payment_with_group) do
@@ -107,6 +111,51 @@ RSpec.describe Tappay::LinePay::Pay do
     end
   end
 
+  describe '#additional_required_options' do
+    it 'returns the required options' do
+      required = payment.send(:additional_required_options)
+      expect(required).to match_array([:prime, :frontend_redirect_url, :backend_notify_url, :cardholder])
+    end
+  end
+
+  describe '#validate_result_url_format!' do
+    it 'raises error when frontend_redirect_url is empty string' do
+      options = payment_options.merge(frontend_redirect_url: '')
+      expect { described_class.new(options) }
+        .to raise_error(Tappay::ValidationError, /result_url must contain both frontend_redirect_url and backend_notify_url/)
+    end
+
+    it 'raises error when backend_notify_url is empty string' do
+      options = payment_options.merge(backend_notify_url: '')
+      expect { described_class.new(options) }
+        .to raise_error(Tappay::ValidationError, /result_url must contain both frontend_redirect_url and backend_notify_url/)
+    end
+
+    it 'raises error when frontend_redirect_url is nil' do
+      options = payment_options.merge(frontend_redirect_url: nil)
+      expect { described_class.new(options) }
+        .to raise_error(Tappay::ValidationError, /Missing required options: frontend_redirect_url/)
+    end
+
+    it 'raises error when backend_notify_url is nil' do
+      options = payment_options.merge(backend_notify_url: nil)
+      expect { described_class.new(options) }
+        .to raise_error(Tappay::ValidationError, /Missing required options: backend_notify_url/)
+    end
+
+    it 'raises error when frontend_redirect_url is whitespace' do
+      options = payment_options.merge(frontend_redirect_url: '   ')
+      expect { described_class.new(options) }
+        .to raise_error(Tappay::ValidationError, /result_url must contain both frontend_redirect_url and backend_notify_url/)
+    end
+
+    it 'raises error when backend_notify_url is whitespace' do
+      options = payment_options.merge(backend_notify_url: '   ')
+      expect { described_class.new(options) }
+        .to raise_error(Tappay::ValidationError, /result_url must contain both frontend_redirect_url and backend_notify_url/)
+    end
+  end
+
   describe '#payment_data' do
     it 'includes required payment data' do
       data = payment.send(:payment_data)
@@ -118,12 +167,33 @@ RSpec.describe Tappay::LinePay::Pay do
       expect(data).not_to have_key(:remember)
     end
 
+    context 'with base payment data' do
+      it 'includes data from parent class' do
+        data = payment.send(:payment_data)
+        expect(data[:amount]).to eq(amount)
+        expect(data[:details]).to eq(details)
+        expect(data[:merchant_id]).to eq(merchant_id)
+      end
+    end
+
+    context 'with merchant_group_id' do
+      let(:merchant_group_id) { 'TEST_GROUP' }
+      let(:payment_with_group) do
+        described_class.new(payment_options.merge(merchant_group_id: merchant_group_id))
+      end
+
+      it 'includes merchant_group_id in payment data' do
+        data = payment_with_group.send(:payment_data)
+        expect(data[:merchant_group_id]).to eq(merchant_group_id)
+        expect(data).not_to have_key(:merchant_id)
+      end
+    end
+
     context 'with optional parameters' do
       let(:optional_params) do
         {
           currency: 'USD',
           order_number: 'ORDER123',
-          three_domain_secure: true,
           result_url: {
             frontend_redirect_url: frontend_redirect_url,
             backend_notify_url: backend_notify_url
@@ -139,7 +209,6 @@ RSpec.describe Tappay::LinePay::Pay do
         data = payment_with_options.send(:payment_data)
         expect(data[:currency]).to eq('USD')
         expect(data[:order_number]).to eq('ORDER123')
-        expect(data[:three_domain_secure]).to be true
         expect(data[:result_url]).to eq(
           frontend_redirect_url: frontend_redirect_url,
           backend_notify_url: backend_notify_url
@@ -245,7 +314,6 @@ RSpec.describe Tappay::LinePay::Pay do
   context 'with result_url' do
     it 'raises error when result_url is not a hash' do
       options = payment_options.merge(
-        three_domain_secure: true,
         result_url: 'not a hash'
       )
       expect { described_class.new(options) }
@@ -254,7 +322,6 @@ RSpec.describe Tappay::LinePay::Pay do
 
     it 'raises error when result_url is nil' do
       options = payment_options.merge(
-        three_domain_secure: true,
         result_url: nil
       )
       expect { described_class.new(options) }
@@ -263,7 +330,6 @@ RSpec.describe Tappay::LinePay::Pay do
 
     it 'raises error when result_url is missing required fields' do
       options = payment_options.merge(
-        three_domain_secure: true,
         result_url: { frontend_redirect_url: 'https://example.com' }
       )
       expect { described_class.new(options) }
@@ -272,7 +338,6 @@ RSpec.describe Tappay::LinePay::Pay do
 
     it 'accepts result_url with string keys' do
       options = payment_options.merge(
-        three_domain_secure: true,
         result_url: {
           'frontend_redirect_url' => frontend_redirect_url,
           'backend_notify_url' => backend_notify_url
@@ -283,7 +348,6 @@ RSpec.describe Tappay::LinePay::Pay do
 
     it 'accepts result_url with mixed string and symbol keys' do
       options = payment_options.merge(
-        three_domain_secure: true,
         result_url: {
           'frontend_redirect_url' => frontend_redirect_url,
           backend_notify_url: backend_notify_url
@@ -294,7 +358,6 @@ RSpec.describe Tappay::LinePay::Pay do
 
     it 'accepts result_url with all symbol keys' do
       options = payment_options.merge(
-        three_domain_secure: true,
         result_url: {
           frontend_redirect_url: frontend_redirect_url,
           backend_notify_url: backend_notify_url
