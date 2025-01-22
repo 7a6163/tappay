@@ -28,7 +28,7 @@ module Tappay
 
       def validate_options!
         super
-        validate_result_url_for_instalment!
+        validate_result_url_for_instalment! if options[:three_domain_secure]
       end
 
       private
@@ -36,7 +36,7 @@ module Tappay
       def get_merchant_id
         # If merchant_group_id is set, it takes precedence
         return nil if Tappay.configuration.merchant_group_id
-        
+
         # Otherwise, use instalment_merchant_id or fall back to default merchant_id
         Tappay.configuration.instalment_merchant_id || super
       end
@@ -46,9 +46,10 @@ module Tappay
       end
 
       def validate_result_url_for_instalment!
-        return if options[:result_url] && 
-                 options[:result_url][:frontend_redirect_url] && 
-                 options[:result_url][:backend_notify_url]
+        result_url = options[:result_url]
+        return if result_url &&
+                 (result_url[:frontend_redirect_url] || result_url['frontend_redirect_url']) &&
+                 (result_url[:backend_notify_url] || result_url['backend_notify_url'])
 
         raise ValidationError, "result_url with frontend_redirect_url and backend_notify_url is required for instalment payments"
       end
@@ -73,7 +74,7 @@ module Tappay
 
       def validate_options!
         super
-        validate_result_url_for_instalment!
+        validate_result_url_for_instalment! if options[:three_domain_secure]
       end
 
       private
@@ -81,7 +82,7 @@ module Tappay
       def get_merchant_id
         # If merchant_group_id is set, it takes precedence
         return nil if Tappay.configuration.merchant_group_id
-        
+
         # Otherwise, use instalment_merchant_id or fall back to default merchant_id
         Tappay.configuration.instalment_merchant_id || super
       end
@@ -91,9 +92,10 @@ module Tappay
       end
 
       def validate_result_url_for_instalment!
-        return if options[:result_url] && 
-                 options[:result_url][:frontend_redirect_url] && 
-                 options[:result_url][:backend_notify_url]
+        result_url = options[:result_url]
+        return if result_url &&
+                 (result_url[:frontend_redirect_url] || result_url['frontend_redirect_url']) &&
+                 (result_url[:backend_notify_url] || result_url['backend_notify_url'])
 
         raise ValidationError, "result_url with frontend_redirect_url and backend_notify_url is required for instalment payments"
       end

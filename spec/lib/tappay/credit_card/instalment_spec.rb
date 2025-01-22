@@ -63,47 +63,97 @@ RSpec.describe Tappay::CreditCard::Instalment do
   end
 
   describe Tappay::CreditCard::InstalmentByPrime do
+    describe '#initialize' do
+      it 'initializes with valid options' do
+        expect { described_class.new(valid_options) }.not_to raise_error
+      end
+
+      it 'validates options on initialization' do
+        invalid_options = valid_options.tap { |o| o.delete(:amount) }
+        expect { described_class.new(invalid_options) }
+          .to raise_error(Tappay::ValidationError, /Missing required options: amount/)
+      end
+    end
+
     describe '#validate_result_url_for_instalment!' do
-      context 'when result_url is missing' do
-        let(:invalid_options) { valid_options.tap { |o| o.delete(:result_url) } }
+      context 'when three_domain_secure is true' do
+        let(:options_with_3ds) { valid_options.merge(three_domain_secure: true) }
 
-        it 'raises ValidationError' do
-          expect { described_class.new(invalid_options) }
-            .to raise_error(Tappay::ValidationError, /result_url with frontend_redirect_url and backend_notify_url is required for instalment payments/)
+        context 'when result_url is missing' do
+          let(:invalid_options) { options_with_3ds.tap { |o| o.delete(:result_url) } }
+
+          it 'raises ValidationError' do
+            expect { described_class.new(invalid_options) }
+              .to raise_error(Tappay::ValidationError, /result_url must be a hash/)
+          end
+        end
+
+        context 'when result_url is nil' do
+          let(:invalid_options) { options_with_3ds.merge(result_url: nil) }
+
+          it 'raises ValidationError' do
+            expect { described_class.new(invalid_options) }
+              .to raise_error(Tappay::ValidationError, /result_url must be a hash/)
+          end
+        end
+
+        context 'when result_url is not a hash' do
+          let(:invalid_options) { options_with_3ds.merge(result_url: 'not a hash') }
+
+          it 'raises ValidationError' do
+            expect { described_class.new(invalid_options) }
+              .to raise_error(Tappay::ValidationError, /result_url must be a hash/)
+          end
+        end
+
+        context 'when result_url is missing frontend_redirect_url' do
+          let(:invalid_result_url) do
+            {
+              backend_notify_url: 'https://example.com/notify'
+            }
+          end
+          let(:invalid_options) { options_with_3ds.merge(result_url: invalid_result_url) }
+
+          it 'raises ValidationError' do
+            expect { described_class.new(invalid_options) }
+              .to raise_error(Tappay::ValidationError, /result_url must contain both frontend_redirect_url and backend_notify_url/)
+          end
+        end
+
+        context 'when result_url is missing backend_notify_url' do
+          let(:invalid_result_url) do
+            {
+              frontend_redirect_url: 'https://example.com/redirect'
+            }
+          end
+          let(:invalid_options) { options_with_3ds.merge(result_url: invalid_result_url) }
+
+          it 'raises ValidationError' do
+            expect { described_class.new(invalid_options) }
+              .to raise_error(Tappay::ValidationError, /result_url must contain both frontend_redirect_url and backend_notify_url/)
+          end
+        end
+
+        context 'when result_url has both required URLs' do
+          it 'does not raise error' do
+            expect { described_class.new(options_with_3ds) }.not_to raise_error
+          end
         end
       end
 
-      context 'when result_url is missing frontend_redirect_url' do
-        let(:invalid_result_url) do
-          {
-            backend_notify_url: 'https://example.com/notify'
-          }
-        end
-        let(:invalid_options) { valid_options.merge(result_url: invalid_result_url) }
+      context 'when three_domain_secure is false' do
+        let(:options_without_3ds) { valid_options.merge(three_domain_secure: false) }
 
-        it 'raises ValidationError' do
-          expect { described_class.new(invalid_options) }
-            .to raise_error(Tappay::ValidationError, /result_url with frontend_redirect_url and backend_notify_url is required for instalment payments/)
+        it 'does not validate result_url' do
+          invalid_options = options_without_3ds.tap { |o| o.delete(:result_url) }
+          expect { described_class.new(invalid_options) }.not_to raise_error
         end
       end
 
-      context 'when result_url is missing backend_notify_url' do
-        let(:invalid_result_url) do
-          {
-            frontend_redirect_url: 'https://example.com/redirect'
-          }
-        end
-        let(:invalid_options) { valid_options.merge(result_url: invalid_result_url) }
-
-        it 'raises ValidationError' do
-          expect { described_class.new(invalid_options) }
-            .to raise_error(Tappay::ValidationError, /result_url with frontend_redirect_url and backend_notify_url is required for instalment payments/)
-        end
-      end
-
-      context 'when result_url has both required URLs' do
-        it 'does not raise error' do
-          expect { described_class.new(valid_options) }.not_to raise_error
+      context 'when three_domain_secure is not provided' do
+        it 'does not validate result_url' do
+          invalid_options = valid_options.tap { |o| o.delete(:result_url) }
+          expect { described_class.new(invalid_options) }.not_to raise_error
         end
       end
     end
@@ -166,6 +216,239 @@ RSpec.describe Tappay::CreditCard::Instalment do
         end
       end
     end
+
+    describe '#payment_data' do
+      before do
+        allow(Tappay.configuration).to receive(:merchant_id).and_return('TEST_MERCHANT')
+        allow(Tappay.configuration).to receive(:merchant_group_id).and_return(nil)
+        allow(Tappay.configuration).to receive(:instalment_merchant_id).and_return(nil)
+      end
+
+      let(:payment) { described_class.new(valid_options) }
+
+      it 'includes remember option with default value' do
+        data = payment.send(:payment_data)
+        expect(data[:remember]).to be false
+      end
+
+      it 'includes remember option with specified value' do
+        options = valid_options.merge(remember: true)
+        data = described_class.new(options).send(:payment_data)
+        expect(data[:remember]).to be true
+      end
+
+      it 'includes prime from options' do
+        data = payment.send(:payment_data)
+        expect(data[:prime]).to eq('test_prime')
+      end
+
+      context 'with merchant_id from options' do
+        let(:options_with_merchant) { valid_options.merge(merchant_id: 'OPTION_MERCHANT') }
+
+        it 'uses merchant_id from options' do
+          data = described_class.new(options_with_merchant).send(:payment_data)
+          expect(data[:merchant_id]).to eq('OPTION_MERCHANT')
+        end
+      end
+
+      context 'with merchant_group_id from options' do
+        let(:options_with_group) { valid_options.merge(merchant_group_id: 'OPTION_GROUP') }
+
+        it 'uses merchant_group_id from options' do
+          data = described_class.new(options_with_group).send(:payment_data)
+          expect(data[:merchant_group_id]).to eq('OPTION_GROUP')
+          expect(data).not_to have_key(:merchant_id)
+        end
+      end
+
+      context 'with optional parameters' do
+        let(:options_with_optional) do
+          valid_options.merge(
+            currency: 'USD',
+            order_number: 'ORDER123',
+            three_domain_secure: true
+          )
+        end
+
+        it 'includes optional parameters in payment data' do
+          data = described_class.new(options_with_optional).send(:payment_data)
+          expect(data[:currency]).to eq('USD')
+          expect(data[:order_number]).to eq('ORDER123')
+          expect(data[:three_domain_secure]).to be true
+        end
+      end
+
+      context 'with default values' do
+        it 'sets default values correctly' do
+          data = described_class.new(valid_options).send(:payment_data)
+          expect(data[:currency]).to eq('TWD')
+          expect(data[:three_domain_secure]).to be false
+        end
+      end
+    end
+
+    describe '#endpoint_url' do
+      let(:payment) { described_class.new(valid_options) }
+
+      it 'returns the correct endpoint URL' do
+        expect(payment.endpoint_url).to eq(payment_url)
+        expect(Tappay::Endpoints::Payment).to have_received(:pay_by_prime_url)
+      end
+    end
+
+    describe '#card_holder_data' do
+      let(:card_holder) { Tappay::CardHolder.new(phone_number: '0912345678', name: 'Test User', email: 'test@example.com') }
+      let(:card_holder_hash) { { phone_number: '0912345678', name: 'Test User', email: 'test@example.com' } }
+
+      context 'when cardholder is a CardHolder instance' do
+        let(:options) { valid_options.merge(cardholder: card_holder) }
+        let(:payment) { described_class.new(options) }
+
+        it 'converts CardHolder to hash' do
+          expect(payment.send(:card_holder_data)).to eq(card_holder_hash)
+        end
+      end
+
+      context 'when cardholder is a Hash' do
+        let(:options) { valid_options.merge(cardholder: card_holder_hash) }
+        let(:payment) { described_class.new(options) }
+
+        it 'uses the hash directly' do
+          expect(payment.send(:card_holder_data)).to eq(card_holder_hash)
+        end
+      end
+
+      context 'when cardholder is invalid' do
+        let(:options) { valid_options.merge(cardholder: 'invalid') }
+        let(:payment) { described_class.new(options) }
+
+        it 'raises ValidationError' do
+          expect { payment.send(:card_holder_data) }.to raise_error(Tappay::ValidationError, 'Invalid cardholder format')
+        end
+      end
+    end
+
+    describe '#validate_amount!' do
+      context 'with invalid amount' do
+        it 'raises error when amount is not a number' do
+          options = valid_options.merge(amount: 'invalid')
+          expect { described_class.new(options) }
+            .to raise_error(Tappay::ValidationError, 'amount must be a number')
+        end
+
+        it 'raises error when amount is zero' do
+          options = valid_options.merge(amount: 0)
+          expect { described_class.new(options) }
+            .to raise_error(Tappay::ValidationError, 'amount must be greater than 0')
+        end
+
+        it 'raises error when amount is negative' do
+          options = valid_options.merge(amount: -100)
+          expect { described_class.new(options) }
+            .to raise_error(Tappay::ValidationError, 'amount must be greater than 0')
+        end
+      end
+    end
+
+    describe '#validate_result_url!' do
+      context 'with invalid result_url' do
+        it 'raises error when result_url is not a hash' do
+          options = valid_options.merge(three_domain_secure: true, result_url: 'invalid')
+          expect { described_class.new(options) }
+            .to raise_error(Tappay::ValidationError, 'result_url must be a hash')
+        end
+
+        it 'raises error when missing frontend_redirect_url' do
+          options = valid_options.merge(
+            three_domain_secure: true,
+            result_url: { backend_notify_url: 'http://example.com/notify' }
+          )
+          expect { described_class.new(options) }
+            .to raise_error(Tappay::ValidationError, 'result_url must contain both frontend_redirect_url and backend_notify_url')
+        end
+
+        it 'raises error when missing backend_notify_url' do
+          options = valid_options.merge(
+            three_domain_secure: true,
+            result_url: { frontend_redirect_url: 'http://example.com/redirect' }
+          )
+          expect { described_class.new(options) }
+            .to raise_error(Tappay::ValidationError, 'result_url must contain both frontend_redirect_url and backend_notify_url')
+        end
+      end
+
+      context 'with string keys' do
+        let(:result_url) do
+          {
+            'frontend_redirect_url' => 'http://example.com/redirect',
+            'backend_notify_url' => 'http://example.com/notify'
+          }
+        end
+
+        it 'accepts string keys for URLs' do
+          options = valid_options.merge(
+            three_domain_secure: true,
+            result_url: result_url
+          )
+          expect { described_class.new(options) }.not_to raise_error
+        end
+      end
+    end
+
+    describe '#payment_data' do
+      before do
+        allow(Tappay.configuration).to receive(:merchant_id).and_return('TEST_MERCHANT')
+        allow(Tappay.configuration).to receive(:merchant_group_id).and_return(nil)
+        allow(Tappay.configuration).to receive(:instalment_merchant_id).and_return(nil)
+        allow(Tappay.configuration).to receive(:partner_key).and_return('TEST_PARTNER_KEY')
+      end
+
+      context 'with cardholder' do
+        let(:card_holder) { Tappay::CardHolder.new(phone_number: '0912345678', name: 'Test User', email: 'test@example.com') }
+        let(:options_with_cardholder) { valid_options.merge(cardholder: card_holder) }
+
+        it 'includes cardholder data' do
+          data = described_class.new(options_with_cardholder).send(:payment_data)
+          expect(data[:cardholder]).to eq(card_holder.to_h)
+        end
+      end
+
+      context 'with result_url' do
+        let(:result_url) { { frontend_redirect_url: 'http://example.com/redirect', backend_notify_url: 'http://example.com/notify' } }
+        let(:options_with_result_url) { valid_options.merge(result_url: result_url) }
+
+        it 'includes result_url data' do
+          data = described_class.new(options_with_result_url).send(:payment_data)
+          expect(data[:result_url]).to eq(result_url)
+        end
+      end
+
+      context 'with instalment' do
+        let(:options_with_instalment) { valid_options.merge(instalment: 3) }
+
+        it 'includes instalment data' do
+          data = described_class.new(options_with_instalment).send(:payment_data)
+          expect(data[:instalment]).to eq(3)
+        end
+      end
+
+      context 'without optional data' do
+        let(:basic_options) do
+          {
+            amount: 1000,
+            details: 'Test Payment',
+            prime: 'test_prime',
+            cardholder: { name: 'Test User', email: 'test@example.com', phone_number: '0912345678' },
+            instalment: 0
+          }
+        end
+
+        it 'sets default instalment to 0' do
+          data = described_class.new(basic_options).send(:payment_data)
+          expect(data[:instalment]).to eq(0)
+        end
+      end
+    end
   end
 
   describe Tappay::CreditCard::InstalmentByToken do
@@ -197,62 +480,97 @@ RSpec.describe Tappay::CreditCard::Instalment do
       }
     end
 
+    describe '#initialize' do
+      it 'initializes with valid options' do
+        expect { described_class.new(token_options) }.not_to raise_error
+      end
+
+      it 'validates options on initialization' do
+        invalid_options = token_options.tap { |o| o.delete(:card_key) }
+        expect { described_class.new(invalid_options) }
+          .to raise_error(Tappay::ValidationError, /Missing required options: card_key/)
+      end
+    end
+
     describe '#validate_result_url_for_instalment!' do
-      context 'when result_url is missing' do
-        let(:invalid_options) { token_options.tap { |o| o.delete(:result_url) } }
+      context 'when three_domain_secure is true' do
+        let(:options_with_3ds) { token_options.merge(three_domain_secure: true) }
 
-        it 'raises ValidationError' do
-          expect { described_class.new(invalid_options) }
-            .to raise_error(Tappay::ValidationError, /result_url with frontend_redirect_url and backend_notify_url is required for instalment payments/)
+        context 'when result_url is missing' do
+          let(:invalid_options) { options_with_3ds.tap { |o| o.delete(:result_url) } }
+
+          it 'raises ValidationError' do
+            expect { described_class.new(invalid_options) }
+              .to raise_error(Tappay::ValidationError, /result_url must be a hash/)
+          end
+        end
+
+        context 'when result_url is nil' do
+          let(:invalid_options) { options_with_3ds.merge(result_url: nil) }
+
+          it 'raises ValidationError' do
+            expect { described_class.new(invalid_options) }
+              .to raise_error(Tappay::ValidationError, /result_url must be a hash/)
+          end
+        end
+
+        context 'when result_url is not a hash' do
+          let(:invalid_options) { options_with_3ds.merge(result_url: 'not a hash') }
+
+          it 'raises ValidationError' do
+            expect { described_class.new(invalid_options) }
+              .to raise_error(Tappay::ValidationError, /result_url must be a hash/)
+          end
+        end
+
+        context 'when result_url is missing frontend_redirect_url' do
+          let(:invalid_result_url) do
+            {
+              backend_notify_url: 'https://example.com/notify'
+            }
+          end
+          let(:invalid_options) { options_with_3ds.merge(result_url: invalid_result_url) }
+
+          it 'raises ValidationError' do
+            expect { described_class.new(invalid_options) }
+              .to raise_error(Tappay::ValidationError, /result_url must contain both frontend_redirect_url and backend_notify_url/)
+          end
+        end
+
+        context 'when result_url is missing backend_notify_url' do
+          let(:invalid_result_url) do
+            {
+              frontend_redirect_url: 'https://example.com/redirect'
+            }
+          end
+          let(:invalid_options) { options_with_3ds.merge(result_url: invalid_result_url) }
+
+          it 'raises ValidationError' do
+            expect { described_class.new(invalid_options) }
+              .to raise_error(Tappay::ValidationError, /result_url must contain both frontend_redirect_url and backend_notify_url/)
+          end
+        end
+
+        context 'when result_url has both required URLs' do
+          it 'does not raise error' do
+            expect { described_class.new(options_with_3ds) }.not_to raise_error
+          end
         end
       end
 
-      context 'when result_url is missing frontend_redirect_url' do
-        let(:invalid_result_url) do
-          {
-            backend_notify_url: 'https://example.com/notify'
-          }
-        end
-        let(:invalid_options) { token_options.merge(result_url: invalid_result_url) }
+      context 'when three_domain_secure is false' do
+        let(:options_without_3ds) { token_options.merge(three_domain_secure: false) }
 
-        it 'raises ValidationError' do
-          expect { described_class.new(invalid_options) }
-            .to raise_error(Tappay::ValidationError, /result_url with frontend_redirect_url and backend_notify_url is required for instalment payments/)
+        it 'does not validate result_url' do
+          invalid_options = options_without_3ds.tap { |o| o.delete(:result_url) }
+          expect { described_class.new(invalid_options) }.not_to raise_error
         end
       end
 
-      context 'when result_url is missing backend_notify_url' do
-        let(:invalid_result_url) do
-          {
-            frontend_redirect_url: 'https://example.com/redirect'
-          }
-        end
-        let(:invalid_options) { token_options.merge(result_url: invalid_result_url) }
-
-        it 'raises ValidationError' do
-          expect { described_class.new(invalid_options) }
-            .to raise_error(Tappay::ValidationError, /result_url with frontend_redirect_url and backend_notify_url is required for instalment payments/)
-        end
-      end
-
-      context 'when result_url has both required URLs' do
-        it 'does not raise error' do
-          expect { described_class.new(token_options) }.not_to raise_error
-        end
-      end
-
-      context 'when result_url has nil values' do
-        let(:invalid_result_url) do
-          {
-            frontend_redirect_url: nil,
-            backend_notify_url: nil
-          }
-        end
-        let(:invalid_options) { token_options.merge(result_url: invalid_result_url) }
-
-        it 'raises ValidationError' do
-          expect { described_class.new(invalid_options) }
-            .to raise_error(Tappay::ValidationError, /result_url with frontend_redirect_url and backend_notify_url is required for instalment payments/)
+      context 'when three_domain_secure is not provided' do
+        it 'does not validate result_url' do
+          invalid_options = token_options.tap { |o| o.delete(:result_url) }
+          expect { described_class.new(invalid_options) }.not_to raise_error
         end
       end
     end
@@ -313,6 +631,84 @@ RSpec.describe Tappay::CreditCard::Instalment do
         it 'returns default merchant_id' do
           expect(described_class.new(token_options).send(:get_merchant_id)).to eq('DEFAULT_MERCHANT')
         end
+      end
+    end
+
+    describe '#payment_data' do
+      before do
+        allow(Tappay.configuration).to receive(:merchant_id).and_return('TEST_MERCHANT')
+        allow(Tappay.configuration).to receive(:merchant_group_id).and_return(nil)
+        allow(Tappay.configuration).to receive(:instalment_merchant_id).and_return(nil)
+        allow(Tappay.configuration).to receive(:partner_key).and_return('TEST_PARTNER_KEY')
+      end
+
+      let(:payment) { described_class.new(token_options) }
+
+      it 'includes all required token data' do
+        data = payment.send(:payment_data)
+        expect(data[:card_key]).to eq('test_card_key')
+        expect(data[:card_token]).to eq('test_card_token')
+        expect(data[:ccv_prime]).to eq('test_ccv_prime')
+      end
+
+      it 'includes data from parent class' do
+        data = payment.send(:payment_data)
+        expect(data[:amount]).to eq(1000)
+        expect(data[:details]).to eq('Test Payment')
+      end
+
+      context 'with merchant_id from options' do
+        let(:options_with_merchant) { token_options.merge(merchant_id: 'OPTION_MERCHANT') }
+
+        it 'uses merchant_id from options' do
+          data = described_class.new(options_with_merchant).send(:payment_data)
+          expect(data[:merchant_id]).to eq('OPTION_MERCHANT')
+        end
+      end
+
+      context 'with merchant_group_id from options' do
+        let(:options_with_group) { token_options.merge(merchant_group_id: 'OPTION_GROUP') }
+
+        it 'uses merchant_group_id from options' do
+          data = described_class.new(options_with_group).send(:payment_data)
+          expect(data[:merchant_group_id]).to eq('OPTION_GROUP')
+          expect(data).not_to have_key(:merchant_id)
+        end
+      end
+
+      context 'with optional parameters' do
+        let(:options_with_optional) do
+          token_options.merge(
+            currency: 'USD',
+            order_number: 'ORDER123',
+            three_domain_secure: true
+          )
+        end
+
+        it 'includes optional parameters in payment data' do
+          data = described_class.new(options_with_optional).send(:payment_data)
+          expect(data[:currency]).to eq('USD')
+          expect(data[:order_number]).to eq('ORDER123')
+          expect(data[:three_domain_secure]).to be true
+        end
+      end
+
+      context 'with default values' do
+        it 'sets default values correctly' do
+          data = described_class.new(token_options).send(:payment_data)
+          expect(data[:currency]).to eq('TWD')
+          expect(data[:three_domain_secure]).to be false
+          expect(data[:partner_key]).to eq('TEST_PARTNER_KEY')
+        end
+      end
+    end
+
+    describe '#endpoint_url' do
+      let(:payment) { described_class.new(token_options) }
+
+      it 'returns the correct endpoint URL' do
+        expect(payment.endpoint_url).to eq(payment_url)
+        expect(Tappay::Endpoints::Payment).to have_received(:pay_by_token_url)
       end
     end
   end
@@ -422,62 +818,84 @@ RSpec.describe Tappay::CreditCard::Instalment do
       }
     end
 
-    context 'without result_url' do
-      subject { Tappay::CreditCard::InstalmentByPrime.new(base_options.merge(prime: 'test_prime')) }
+    context 'when three_domain_secure is true' do
+      let(:options_with_3ds) { base_options.merge(prime: 'test_prime', three_domain_secure: true) }
 
-      it 'raises ValidationError' do
-        expect { subject.send(:validate_result_url_for_instalment!) }
-          .to raise_error(Tappay::ValidationError, /result_url.*required for instalment payments/)
+      context 'when result_url is missing' do
+        let(:invalid_options) { options_with_3ds.tap { |o| o.delete(:result_url) } }
+
+        it 'raises ValidationError' do
+          expect { Tappay::CreditCard::InstalmentByPrime.new(invalid_options) }
+            .to raise_error(Tappay::ValidationError, /result_url must be a hash/)
+        end
+      end
+
+      context 'when result_url is nil' do
+        let(:invalid_options) { options_with_3ds.merge(result_url: nil) }
+
+        it 'raises ValidationError' do
+          expect { Tappay::CreditCard::InstalmentByPrime.new(invalid_options) }
+            .to raise_error(Tappay::ValidationError, /result_url must be a hash/)
+        end
+      end
+
+      context 'when result_url is not a hash' do
+        let(:invalid_options) { options_with_3ds.merge(result_url: 'not a hash') }
+
+        it 'raises ValidationError' do
+          expect { Tappay::CreditCard::InstalmentByPrime.new(invalid_options) }
+            .to raise_error(Tappay::ValidationError, /result_url must be a hash/)
+        end
+      end
+
+      context 'when result_url is missing frontend_redirect_url' do
+        let(:invalid_result_url) do
+          {
+            backend_notify_url: 'https://example.com/notify'
+          }
+        end
+        let(:invalid_options) { options_with_3ds.merge(result_url: invalid_result_url) }
+
+        it 'raises ValidationError' do
+          expect { Tappay::CreditCard::InstalmentByPrime.new(invalid_options) }
+            .to raise_error(Tappay::ValidationError, /result_url must contain both frontend_redirect_url and backend_notify_url/)
+        end
+      end
+
+      context 'when result_url is missing backend_notify_url' do
+        let(:invalid_result_url) do
+          {
+            frontend_redirect_url: 'https://example.com/redirect'
+          }
+        end
+        let(:invalid_options) { options_with_3ds.merge(result_url: invalid_result_url) }
+
+        it 'raises ValidationError' do
+          expect { Tappay::CreditCard::InstalmentByPrime.new(invalid_options) }
+            .to raise_error(Tappay::ValidationError, /result_url must contain both frontend_redirect_url and backend_notify_url/)
+        end
+      end
+
+      context 'when result_url has both required URLs' do
+        it 'does not raise error' do
+          expect { Tappay::CreditCard::InstalmentByPrime.new(options_with_3ds.merge(result_url: result_url)) }.not_to raise_error
+        end
       end
     end
 
-    context 'with incomplete result_url' do
-      subject do
-        Tappay::CreditCard::InstalmentByPrime.new(
-          base_options.merge(
-            prime: 'test_prime',
-            result_url: { frontend_redirect_url: 'https://example.com' }
-          )
-        )
-      end
+    context 'when three_domain_secure is false' do
+      let(:options_without_3ds) { base_options.merge(prime: 'test_prime', three_domain_secure: false) }
 
-      it 'raises ValidationError' do
-        expect { subject.send(:validate_result_url_for_instalment!) }
-          .to raise_error(Tappay::ValidationError, /result_url.*required for instalment payments/)
+      it 'does not validate result_url' do
+        invalid_options = options_without_3ds.tap { |o| o.delete(:result_url) }
+        expect { Tappay::CreditCard::InstalmentByPrime.new(invalid_options) }.not_to raise_error
       end
     end
 
-    context 'with complete result_url' do
-      subject do
-        Tappay::CreditCard::InstalmentByPrime.new(
-          base_options.merge(
-            prime: 'test_prime',
-            result_url: result_url
-          )
-        )
-      end
-
-      it 'does not raise error' do
-        expect { subject.send(:validate_result_url_for_instalment!) }.not_to raise_error
-      end
-    end
-
-    context 'with result_url containing nil values' do
-      subject do
-        Tappay::CreditCard::InstalmentByPrime.new(
-          base_options.merge(
-            prime: 'test_prime',
-            result_url: {
-              frontend_redirect_url: nil,
-              backend_notify_url: nil
-            }
-          )
-        )
-      end
-
-      it 'raises ValidationError' do
-        expect { subject.send(:validate_result_url_for_instalment!) }
-          .to raise_error(Tappay::ValidationError, /result_url.*required for instalment payments/)
+    context 'when three_domain_secure is not provided' do
+      it 'does not validate result_url' do
+        invalid_options = base_options.merge(prime: 'test_prime').tap { |o| o.delete(:result_url) }
+        expect { Tappay::CreditCard::InstalmentByPrime.new(invalid_options) }.not_to raise_error
       end
     end
   end
