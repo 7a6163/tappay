@@ -3,6 +3,7 @@ require 'json'
 module Tappay
   module ApplePay
     class Pay < PaymentBase
+
       def endpoint_url
         Tappay::Endpoints::Payment.pay_by_prime_url
       end

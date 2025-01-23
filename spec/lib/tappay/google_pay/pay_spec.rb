@@ -16,6 +16,7 @@ RSpec.describe Tappay::GooglePay::Pay do
       phone_number: '0912345678'
     )
   end
+  let(:pay_by_prime_url) { 'https://sandbox.tappaysdk.com/tpc/payment/pay-by-prime' }
 
   let(:payment_options) do
     {
@@ -31,6 +32,14 @@ RSpec.describe Tappay::GooglePay::Pay do
     allow(Tappay.configuration).to receive(:merchant_id).and_return(merchant_id)
     allow(Tappay.configuration).to receive(:google_pay_merchant_id).and_return(nil)
     allow(Tappay.configuration).to receive(:merchant_group_id).and_return(nil)
+  end
+
+  describe '#endpoint_url' do
+    let(:instance) { described_class.new(payment_options) }
+
+    it 'returns pay_by_prime_url' do
+      expect(instance.endpoint_url).to eq(pay_by_prime_url)
+    end
   end
 
   describe '#get_merchant_id' do
