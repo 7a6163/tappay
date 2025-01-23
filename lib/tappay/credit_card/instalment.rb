@@ -5,6 +5,7 @@ require 'tappay/payment_base'
 module Tappay
   module CreditCard
     class Instalment < PaymentBase
+
       def self.by_prime(options = {})
         InstalmentByPrime.new(options)
       end

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.15.3] - 2025-01-23
+
+### Changed
+- Enhanced Google Pay and Apple Pay implementations
+- Improved test coverage for payment methods
+
 ## [0.15.2] - 2025-01-22
 
 ### Changed
