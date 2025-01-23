@@ -140,10 +140,15 @@ result = Tappay::LinePay::Pay.new(
 Process refunds for any payment method:
 
 ```ruby
-# Process a refund
+# Process a full refund
+result = Tappay::Refund.new(
+  rec_trade_id: 'TRANSACTION_ID'
+).execute
+
+# Process a partial refund
 result = Tappay::Refund.new(
   rec_trade_id: 'TRANSACTION_ID',
-  amount: 1000
+  amount: 1000  # Optional: specify amount for partial refund
 ).execute
 ```
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.15.6] - 2025-01-23
+
+### Changed
+- Made `amount` parameter optional in refund API
+- Improved refund API flexibility by allowing refunds without specifying amount
+
 ## [0.15.5] - 2025-01-23
 
 ### Changed
