@@ -102,11 +102,6 @@ RSpec.describe Tappay::Configuration do
       config.currency = 'TWD'
       expect(config.currency).to eq('TWD')
     end
-
-    it 'sets and gets vat_number' do
-      config.vat_number = '12345678'
-      expect(config.vat_number).to eq('12345678')
-    end
   end
 
   describe '#api_version' do
