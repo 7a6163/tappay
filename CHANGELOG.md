@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.15.5] - 2025-01-23
+
+### Changed
+- Removed deprecated `vat_number` configuration option
+
+## [0.15.4] - 2025-01-23
+
+### Changed
+- Removed deprecated `app_id` configuration option
+
 ## [0.15.3] - 2025-01-23
 
 ### Changed
