@@ -13,15 +13,27 @@ RSpec.describe Tappay::Refund do
 
   describe '#initialize' do
     context 'with valid options' do
-      let(:refund) do
-        described_class.new(
-          rec_trade_id: rec_trade_id,
-          amount: amount
-        )
+      context 'with amount' do
+        let(:refund) do
+          described_class.new(
+            rec_trade_id: rec_trade_id,
+            amount: amount
+          )
+        end
+
+        it 'creates a new instance' do
+          expect(refund).to be_a(described_class)
+        end
       end
 
-      it 'creates a new instance' do
-        expect(refund).to be_a(described_class)
+      context 'without amount' do
+        let(:refund) do
+          described_class.new(rec_trade_id: rec_trade_id)
+        end
+
+        it 'creates a new instance' do
+          expect(refund).to be_a(described_class)
+        end
       end
     end
 
@@ -33,52 +45,72 @@ RSpec.describe Tappay::Refund do
       end
     end
 
-    context 'with missing amount' do
-      it 'raises ValidationError' do
-        expect {
-          described_class.new(rec_trade_id: rec_trade_id)
-        }.to raise_error(Tappay::ValidationError, /Missing required options: amount/)
-      end
-    end
-
     context 'with missing all required options' do
       it 'raises ValidationError' do
         expect {
           described_class.new({})
-        }.to raise_error(Tappay::ValidationError, /Missing required options: rec_trade_id, amount/)
+        }.to raise_error(Tappay::ValidationError, /Missing required options: rec_trade_id/)
       end
     end
   end
 
   describe '#execute' do
-    let(:refund) do
-      described_class.new(
-        rec_trade_id: rec_trade_id,
-        amount: amount
-      )
-    end
-
     let(:response) { double('response') }
 
-    before do
-      allow(refund).to receive(:post).and_return(response)
-    end
-
-    it 'calls post with correct parameters' do
-      expect(refund).to receive(:post).with(
-        refund_url,
-        {
-          partner_key: Tappay.configuration.partner_key,
+    context 'with amount' do
+      let(:refund) do
+        described_class.new(
           rec_trade_id: rec_trade_id,
           amount: amount
-        }
-      )
+        )
+      end
 
-      refund.execute
+      before do
+        allow(refund).to receive(:post).and_return(response)
+      end
+
+      it 'calls post with amount parameter' do
+        expect(refund).to receive(:post).with(
+          refund_url,
+          {
+            partner_key: Tappay.configuration.partner_key,
+            rec_trade_id: rec_trade_id,
+            amount: amount
+          }
+        )
+
+        refund.execute
+      end
+
+      it 'returns response' do
+        expect(refund.execute).to eq(response)
+      end
     end
 
-    it 'returns response' do
-      expect(refund.execute).to eq(response)
+    context 'without amount' do
+      let(:refund) do
+        described_class.new(rec_trade_id: rec_trade_id)
+      end
+
+      before do
+        allow(refund).to receive(:post).and_return(response)
+      end
+
+      it 'calls post without amount parameter' do
+        expect(refund).to receive(:post).with(
+          refund_url,
+          {
+            partner_key: Tappay.configuration.partner_key,
+            rec_trade_id: rec_trade_id
+          }
+        )
+
+        refund.execute
+      end
+
+      it 'returns response' do
+        expect(refund.execute).to eq(response)
+      end
     end
   end
 end
