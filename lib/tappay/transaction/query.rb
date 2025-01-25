@@ -30,6 +30,7 @@ module Tappay
 
       def request_params
         {
+          partner_key: Tappay.configuration.partner_key,
           records_per_page: @records_per_page,
           page: @page,
           filters: filters,

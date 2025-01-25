@@ -64,6 +64,7 @@ RSpec.describe Tappay::Transaction::Query do
         allow(client).to receive(:post).with(
           query_url,
           {
+            partner_key: Tappay.configuration.partner_key,
             records_per_page: 50,
             page: 0,
             filters: {
@@ -129,6 +130,7 @@ RSpec.describe Tappay::Transaction::Query do
         allow(client).to receive(:post).with(
           query_url,
           {
+            partner_key: Tappay.configuration.partner_key,
             records_per_page: 50,
             page: 0,
             filters: {
@@ -176,6 +178,7 @@ RSpec.describe Tappay::Transaction::Query do
         allow(client).to receive(:post).with(
           query_url,
           {
+            partner_key: Tappay.configuration.partner_key,
             records_per_page: 50,
             page: 0,
             filters: {
@@ -238,6 +241,7 @@ RSpec.describe Tappay::Transaction::Query do
         allow(client).to receive(:post).with(
           query_url,
           {
+            partner_key: Tappay.configuration.partner_key,
             records_per_page: 50,
             page: 0,
             filters: {
@@ -289,6 +293,7 @@ RSpec.describe Tappay::Transaction::Query do
         allow(client).to receive(:post).with(
           query_url,
           {
+            partner_key: Tappay.configuration.partner_key,
             records_per_page: 50,
             page: 0,
             filters: {

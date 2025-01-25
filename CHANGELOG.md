@@ -1,4 +1,9 @@
 # Changelog
+## [0.15.7] - 2025-01-26
+
+### Changed
+- Added partner_key parameter to Transaction Query implementation
+- Updated test coverage for Transaction Query
 
 ## [0.15.6] - 2025-01-23
 
