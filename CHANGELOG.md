@@ -1,4 +1,16 @@
 # Changelog
+## [0.16.0] - 2025-01-26
+
+### Breaking Changes
+- Made time parameter required in Transaction Query with proper validation
+
+### Added
+- Added documentation for Transaction Query API
+
+### Changed
+- Added partner_key parameter to Transaction Query implementation
+- Updated test coverage for Transaction Query
+
 ## [0.15.7] - 2025-01-26
 
 ### Changed
