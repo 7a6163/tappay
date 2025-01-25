@@ -39,6 +39,7 @@ RSpec.configure do |config|
   config.before(:each) do
     Tappay.configure do |c|
       c.mode = :sandbox
+      c.partner_key = 'test_partner_key'
     end
   end
 end

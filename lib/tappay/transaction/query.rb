@@ -3,11 +3,11 @@
 module Tappay
   module Transaction
     class Query
-      def initialize(order_number:, records_per_page: 50, page: 0, time: nil, order_by: nil)
+      def initialize(time:, order_number: nil, records_per_page: 50, page: 0, order_by: nil)
+        @time = validate_time!(time)
         @order_number = order_number
         @records_per_page = records_per_page
         @page = page
-        @time = time
         @order_by = order_by
       end
 
@@ -30,6 +30,7 @@ module Tappay
 
       def request_params
         {
+          partner_key: Tappay.configuration.partner_key,
           records_per_page: @records_per_page,
           page: @page,
           filters: filters,
@@ -42,6 +43,22 @@ module Tappay
           order_number: @order_number,
           time: @time
         }.compact
+      end
+
+      def validate_time!(time)
+        unless time.is_a?(Hash) && time[:start_time] && time[:end_time]
+          raise Tappay::ValidationError, "time parameter must include start_time and end_time"
+        end
+
+        unless time[:start_time].is_a?(Integer) && time[:end_time].is_a?(Integer)
+          raise Tappay::ValidationError, "start_time and end_time must be Unix timestamps (integers)"
+        end
+
+        if time[:start_time] > time[:end_time]
+          raise Tappay::ValidationError, "start_time cannot be later than end_time"
+        end
+
+        time
       end
 
       def parse_trade_records(records)

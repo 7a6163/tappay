@@ -186,6 +186,36 @@ payment = Tappay::JkoPay::Pay.new(payment_options)
 result = payment.execute
 ```
 
+### Transaction Query
+
+Query transaction records with required time range:
+
+```ruby
+# Query transactions within a specific time range
+result = Tappay::Transaction::Query.new(
+  time: {
+    start_time: 1706198400,  # Unix timestamp for start time
+    end_time: 1706284800     # Unix timestamp for end time
+  },
+  order_number: 'ORDER123',  # Optional: filter by order number
+  records_per_page: 50,      # Optional: default is 50
+  page: 0,                   # Optional: default is 0
+  order_by: {               # Optional: sort results
+    attribute: 'time',
+    is_descending: true
+  }
+).execute
+
+# Access the results
+result[:trade_records].each do |record|
+  puts "Transaction ID: #{record[:rec_trade_id]}"
+  puts "Amount: #{record[:amount]}"
+  puts "Status: #{record[:record_status]}"
+end
+```
+
+Note: The `time` parameter with both `start_time` and `end_time` is required for querying transactions.
+
 ### Error Handling
 
 The gem provides comprehensive error handling:
