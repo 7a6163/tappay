@@ -3,7 +3,9 @@
 
 ### Changed
 - Added partner_key parameter to Transaction Query implementation
+- Made time parameter required in Transaction Query with proper validation
 - Updated test coverage for Transaction Query
+- Added documentation for Transaction Query API
 
 ## [0.15.6] - 2025-01-23
 
