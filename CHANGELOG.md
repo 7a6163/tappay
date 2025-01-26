@@ -1,4 +1,9 @@
 # Changelog
+## [0.16.1] - 2025-01-26
+
+### Fixed
+- Fixed Transaction Query response handling to accept status code 2 (no records found) as a valid response
+
 ## [0.16.0] - 2025-01-26
 
 ### Breaking Changes
