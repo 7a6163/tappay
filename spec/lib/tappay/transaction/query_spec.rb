@@ -195,6 +195,51 @@ RSpec.describe Tappay::Transaction::Query do
       end
     end
 
+    context 'when no records are found' do
+      let(:response) do
+        {
+          'status' => 2,
+          'msg' => 'No records found',
+          'records_per_page' => 50,
+          'page' => 0,
+          'total_page_count' => 0,
+          'number_of_transactions' => 0,
+          'trade_records' => []
+        }
+      end
+
+      before do
+        allow(client).to receive(:post).with(
+          query_url,
+          {
+            partner_key: Tappay.configuration.partner_key,
+            records_per_page: 50,
+            page: 0,
+            filters: {
+              order_number: order_number,
+              time: time_params
+            },
+            order_by: {
+              attribute: 'time',
+              is_descending: true
+            }
+          }
+        ).and_return(response)
+      end
+
+      it 'returns empty result with status 2' do
+        result = query.execute
+
+        expect(result[:status]).to eq(2)
+        expect(result[:msg]).to eq('No records found')
+        expect(result[:records_per_page]).to eq(50)
+        expect(result[:page]).to eq(0)
+        expect(result[:total_page_count]).to eq(0)
+        expect(result[:number_of_transactions]).to eq(0)
+        expect(result[:trade_records]).to be_empty
+      end
+    end
+
     context 'when trade_records is nil' do
       let(:response) do
         {

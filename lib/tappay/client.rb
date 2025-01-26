@@ -44,7 +44,7 @@ module Tappay
         data = parse_response
         status = data['status']
         # For transaction queries, status 2 means no records found, which is a valid response
-        unless status.zero? || (status == 2 && @response.request.path.include?('/tpc/transaction/query'))
+        unless status.zero? || (status == 2 && @response.request.uri.path.include?('/tpc/transaction/query'))
           raise APIError.new(data['status'], data['msg'])
         end
       when 400

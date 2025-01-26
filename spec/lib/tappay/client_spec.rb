@@ -92,6 +92,22 @@ RSpec.describe Tappay::Client do
         expect { client.post(endpoint, data) }
           .to raise_error(Tappay::APIError)
       end
+
+      it 'accepts status 2 for transaction query endpoint' do
+        query_endpoint = 'https://sandbox.tappaysdk.com/tpc/transaction/query'
+        stub_request(:post, query_endpoint)
+          .to_return(status: 200, body: { status: 2, msg: 'No records found' }.to_json)
+        
+        expect { client.post(query_endpoint, data) }.not_to raise_error
+      end
+
+      it 'raises error for status 2 on non-query endpoints' do
+        stub_request(:post, endpoint)
+          .to_return(status: 200, body: { status: 2, msg: 'Some message' }.to_json)
+        
+        expect { client.post(endpoint, data) }
+          .to raise_error(Tappay::APIError)
+      end
     end
   end
 end
