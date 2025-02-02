@@ -1,4 +1,14 @@
 # Changelog
+
+## [0.17.0] - 2025-02-02
+
+### Added
+- Added dedicated 30-second timeout configuration for refund operations
+- Enhanced Client class to support dynamic timeout parameter injection
+
+### Changed
+- Refactored HTTP request timeout mechanism for better parameter flexibility
+
 ## [0.16.1] - 2025-01-26
 
 ### Fixed

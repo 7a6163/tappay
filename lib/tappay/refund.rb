@@ -1,7 +1,8 @@
 module Tappay
   class Refund < Client
     def initialize(options = {})
-      super
+      super(timeout: 30)
+      @options = options
       validate_options!
     end
 

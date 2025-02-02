@@ -9,6 +9,7 @@ module Tappay
 
     def initialize(options = {})
       @options = options
+      @timeout = options.fetch(:timeout, 25)
     end
 
     def post(url, data)
@@ -35,7 +36,7 @@ module Tappay
     end
 
     def timeout
-      25 # seconds
+      @timeout
     end
 
     def validate_response
