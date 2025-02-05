@@ -86,11 +86,17 @@ RSpec.describe Tappay::Client do
       end
 
       it 'handles non-zero status in response' do
+        response_data = { 'status' => 1, 'msg' => 'Business Error', 'bank_result_code' => 'B001', 'bank_result_msg' => 'Bank Error' }
         stub_request(:post, endpoint)
-          .to_return(status: 200, body: { status: 1, msg: 'Business Error' }.to_json)
+          .to_return(status: 200, body: response_data.to_json)
         
         expect { client.post(endpoint, data) }
-          .to raise_error(Tappay::APIError)
+          .to raise_error { |error|
+            expect(error).to be_a(Tappay::APIError)
+            expect(error.code).to eq(1)
+            expect(error.message).to eq('Business Error')
+            expect(error.response_data).to eq(response_data)
+          }
       end
 
       it 'accepts status 2 for transaction query endpoint' do

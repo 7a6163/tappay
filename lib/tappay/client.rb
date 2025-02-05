@@ -46,7 +46,7 @@ module Tappay
         status = data['status']
         # For transaction queries, status 2 means no records found, which is a valid response
         unless status.zero? || (status == 2 && @response.request.uri.path.include?('/tpc/transaction/query'))
-          raise APIError.new(data['status'], data['msg'])
+          raise APIError.new(data['status'], data['msg'], data)
         end
       when 400
         raise ValidationError, "Invalid request: #{@response.body}"

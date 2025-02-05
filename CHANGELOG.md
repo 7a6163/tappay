@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.18.0] - 2025-02-05
+
+### Added
+- Enhanced error handling by including full response data in APIError
+- Added `response_data` attribute to APIError for accessing complete error details including bank error information
+
 ## [0.17.0] - 2025-02-02
 
 ### Added
