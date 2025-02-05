@@ -42,12 +42,7 @@ module Tappay
     def validate_response
       case @response.code
       when 200
-        data = parse_response
-        status = data['status']
-        # For transaction queries, status 2 means no records found, which is a valid response
-        unless status.zero? || (status == 2 && @response.request.uri.path.include?('/tpc/transaction/query'))
-          raise APIError.new(data['status'], data['msg'], data)
-        end
+        true
       when 400
         raise ValidationError, "Invalid request: #{@response.body}"
       when 401
@@ -57,12 +52,6 @@ module Tappay
       else
         raise ConnectionError, "HTTP Request failed with code #{@response.code}: #{@response.body}"
       end
-    end
-
-    def parse_response
-      JSON.parse(@response.body)
-    rescue JSON::ParserError => e
-      raise ConnectionError, "Invalid JSON response: #{e.message}"
     end
   end
 end
