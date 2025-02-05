@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.0] - 2025-02-05
+
+### Changed
+- Simplified response handling in Client#post method
+- Removed APIError class and related error handling
+- Removed JSON parsing and status code validation for 200 responses
+
 ## [0.18.0] - 2025-02-05
 
 ### Added

@@ -230,9 +230,6 @@ begin
 rescue Tappay::ValidationError => e
   # Handle validation errors (e.g., missing required fields)
   puts "Validation error: #{e.message}"
-rescue Tappay::APIError => e
-  # Handle API errors (e.g., invalid prime, insufficient balance)
-  puts "API error: #{e.message}"
 rescue Tappay::Error => e
   # Handle other TapPay errors
   puts "TapPay error: #{e.message}"
