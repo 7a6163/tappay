@@ -9,11 +9,12 @@ module Tappay
   class QueryError < Error; end
   
   class APIError < Error
-    attr_reader :code, :message
+    attr_reader :code, :message, :response_data
 
-    def initialize(code, message)
+    def initialize(code, message, response_data = nil)
       @code = code
       @message = message
+      @response_data = response_data
       super("TapPay API Error (#{code}): #{message}")
     end
   end
