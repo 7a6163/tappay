@@ -1,10 +1,17 @@
 # Changelog
 
-## [0.19.0] - 2025-02-28
+## [0.20.0] - 2025-02-28
 
 ### Added
 - Added support for `bank_transaction_id` parameter in PaymentBase and Transaction::Query classes
 - Added tests for `bank_transaction_id` functionality
+
+## [0.19.0] - 2025-02-05
+
+### Changed
+- Simplified response handling in Client#post method
+- Removed APIError class and related error handling
+- Removed JSON parsing and status code validation for 200 responses
 
 ## [0.18.0] - 2025-02-05
 

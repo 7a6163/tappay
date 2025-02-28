@@ -28,19 +28,4 @@ RSpec.describe Tappay do
       expect { raise Tappay::QueryError }.to raise_error(Tappay::QueryError)
     end
   end
-
-  describe Tappay::APIError do
-    let(:code) { 'E001' }
-    let(:message) { 'Invalid parameter' }
-    let(:error) { described_class.new(code, message) }
-
-    it 'sets code and message' do
-      expect(error.code).to eq(code)
-      expect(error.message).to eq(message)
-    end
-
-    it 'formats error message correctly' do
-      expect(error.to_s).to eq("TapPay API Error (E001): Invalid parameter")
-    end
-  end
 end
