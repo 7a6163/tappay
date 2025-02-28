@@ -3,9 +3,10 @@
 module Tappay
   module Transaction
     class Query
-      def initialize(time:, order_number: nil, records_per_page: 50, page: 0, order_by: nil)
+      def initialize(time:, order_number: nil, bank_transaction_id: nil, records_per_page: 50, page: 0, order_by: nil)
         @time = validate_time!(time)
         @order_number = order_number
+        @bank_transaction_id = bank_transaction_id
         @records_per_page = records_per_page
         @page = page
         @order_by = order_by
@@ -41,6 +42,7 @@ module Tappay
       def filters
         {
           order_number: @order_number,
+          bank_transaction_id: @bank_transaction_id,
           time: @time
         }.compact
       end

@@ -375,5 +375,50 @@ RSpec.describe Tappay::Transaction::Query do
         expect(result[:trade_records].first[:amount]).to eq(1000)
       end
     end
+
+    context 'with bank_transaction_id' do
+      let(:bank_transaction_id) { 'BANK123' }
+      let(:bank_query) { described_class.new(time: time_params, bank_transaction_id: bank_transaction_id) }
+      let(:response) do
+        {
+          'status' => 0,
+          'msg' => 'Success',
+          'records_per_page' => 50,
+          'page' => 0,
+          'total_page_count' => 1,
+          'number_of_transactions' => 1,
+          'trade_records' => [
+            {
+              'record_status' => 0,
+              'rec_trade_id' => 'RECTRADE123',
+              'amount' => 1000,
+              'currency' => 'TWD',
+              'bank_transaction_id' => bank_transaction_id
+            }
+          ]
+        }
+      end
+
+      before do
+        allow(client).to receive(:post).with(
+          query_url,
+          {
+            partner_key: Tappay.configuration.partner_key,
+            records_per_page: 50,
+            page: 0,
+            filters: {
+              bank_transaction_id: bank_transaction_id,
+              time: time_params
+            }
+          }
+        ).and_return(response)
+      end
+
+      it 'sends request with bank_transaction_id parameter' do
+        result = bank_query.execute
+        expect(result[:status]).to eq(0)
+        expect(result[:trade_records].first[:bank_transaction_id]).to eq(bank_transaction_id)
+      end
+    end
   end
 end

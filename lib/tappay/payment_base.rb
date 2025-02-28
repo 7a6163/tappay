@@ -43,6 +43,7 @@ module Tappay
         data[:cardholder] = card_holder_data if options[:cardholder]
         data[:result_url] = options[:result_url] if options[:result_url]
         data[:instalment] = options[:instalment] || 0
+        data[:bank_transaction_id] = options[:bank_transaction_id] if options[:bank_transaction_id]
       end
     end
 
