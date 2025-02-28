@@ -242,6 +242,24 @@ RSpec.describe Tappay::PaymentBase do
           .to raise_error(Tappay::ValidationError, /Either merchant_group_id or merchant_id must be provided/)
       end
     end
+
+    context 'with bank_transaction_id' do
+      let(:options) { valid_options.merge(bank_transaction_id: 'transaction_123') }
+      subject { concrete_class.new(options) }
+
+      it 'includes bank_transaction_id in payment data' do
+        expect(subject.send(:payment_data)[:bank_transaction_id]).to eq('transaction_123')
+      end
+    end
+
+    context 'without bank_transaction_id' do
+      let(:options) { valid_options }
+      subject { concrete_class.new(options) }
+
+      it 'includes nil bank_transaction_id in payment data' do
+        expect(subject.send(:payment_data)[:bank_transaction_id]).to be_nil
+      end
+    end
   end
 
   describe '#validate_result_url!' do
