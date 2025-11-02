@@ -7,6 +7,7 @@ RSpec.describe Tappay::CreditCard::PayByToken do
     {
       amount: 100,
       details: 'Test payment',
+      merchant_id: 'TEST_MERCHANT',
       card_key: 'test_card_key',
       card_token: 'test_card_token',
       currency: 'TWD'
@@ -26,6 +27,23 @@ RSpec.describe Tappay::CreditCard::PayByToken do
       data = subject.send(:payment_data)
       expect(data[:amount]).to eq(100)
       expect(data[:details]).to eq('Test payment')
+    end
+
+    context 'when ccv_prime is provided' do
+      let(:options_with_ccv) { valid_options.merge(ccv_prime: 'test_ccv_prime') }
+      subject { described_class.new(options_with_ccv) }
+
+      it 'includes ccv_prime in payment data' do
+        data = subject.send(:payment_data)
+        expect(data[:ccv_prime]).to eq('test_ccv_prime')
+      end
+    end
+
+    context 'when ccv_prime is not provided' do
+      it 'includes ccv_prime as nil in payment data' do
+        data = subject.send(:payment_data)
+        expect(data[:ccv_prime]).to be_nil
+      end
     end
   end
 

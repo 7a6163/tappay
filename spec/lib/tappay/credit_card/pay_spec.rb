@@ -111,6 +111,7 @@ RSpec.describe Tappay::CreditCard::Pay do
           order_number: nil,
           card_key: card_key,
           card_token: card_token,
+          ccv_prime: nil,
           three_domain_secure: false,
           instalment: 0
         }

@@ -91,7 +91,7 @@ The gem uses the following priority order when resolving merchant IDs:
 ### Credit Card Payment
 
 ```ruby
-# One-time payment
+# One-time payment with prime
 result = Tappay::CreditCard::Pay.by_prime(
   prime: 'prime_from_tappay_sdk',
   amount: 1000,
@@ -101,6 +101,16 @@ result = Tappay::CreditCard::Pay.by_prime(
     name: 'Test User',
     email: 'test@example.com'
   }
+)
+
+# Payment with saved card token
+result = Tappay::CreditCard::Pay.by_token(
+  card_key: 'card_key_from_tappay',
+  card_token: 'card_token_from_tappay',
+  amount: 1000,
+  currency: 'TWD',
+  details: 'Order Details',
+  ccv_prime: 'ccv_prime_from_tappay'  # Optional: CVV verification
 )
 
 # Instalment payment (3-30 months)
@@ -114,6 +124,16 @@ result = Tappay::CreditCard::Instalment.by_prime(
     name: 'Test User',
     email: 'test@example.com'
   }
+)
+
+# Instalment payment with saved card token
+result = Tappay::CreditCard::Instalment.by_token(
+  card_key: 'card_key_from_tappay',
+  card_token: 'card_token_from_tappay',
+  amount: 1000,
+  instalment: 12,
+  details: 'Order Details',
+  ccv_prime: 'ccv_prime_from_tappay'  # Optional: CVV verification
 )
 ```
 

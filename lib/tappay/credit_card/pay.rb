@@ -37,7 +37,8 @@ module Tappay
       def payment_data
         super.merge(
           card_key: options[:card_key],
-          card_token: options[:card_token]
+          card_token: options[:card_token],
+          ccv_prime: options[:ccv_prime]
         )
       end
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.21.0] - 2025-11-02
+
+### Added
+- Added support for `ccv_prime` parameter in PayByToken for CVV verification with saved cards
+- Added comprehensive test coverage for `ccv_prime` functionality in both payment and instalment by token
+
+### Changed
+- Enhanced documentation with examples for payment by token using saved cards
+- Updated README with `ccv_prime` usage examples
+
 ## [0.20.0] - 2025-02-28
 
 ### Added
