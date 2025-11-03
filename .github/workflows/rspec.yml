@@ -27,6 +27,15 @@ jobs:
     - name: Run RSpec tests
       run: bundle exec rspec
 
+    - name: Verify coverage file exists
+      run: |
+        if [ ! -f coverage/coverage.xml ]; then
+          echo "Error: coverage.xml not found"
+          ls -la coverage/ || echo "coverage directory does not exist"
+          exit 1
+        fi
+        echo "Coverage file found at coverage/coverage.xml"
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
       with:
