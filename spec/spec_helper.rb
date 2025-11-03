@@ -5,6 +5,11 @@ require 'simplecov'
 require 'simplecov-cobertura'
 require 'webmock/rspec'
 
+SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
+  SimpleCov::Formatter::HTMLFormatter,
+  SimpleCov::Formatter::CoberturaFormatter
+])
+
 SimpleCov.start do
   track_files 'lib/**/*.rb'
   add_filter '/spec/'
@@ -14,11 +19,6 @@ SimpleCov.start do
   add_filter 'lib/tappay.rb'
   add_filter 'lib/tappay_ruby.rb'
   enable_coverage :branch
-  
-  SimpleCov.formatters = [
-    SimpleCov::Formatter::HTMLFormatter,
-    SimpleCov::Formatter::CoberturaFormatter
-  ]
 end
 
 require 'bundler/setup'
