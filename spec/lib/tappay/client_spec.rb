@@ -76,6 +76,41 @@ RSpec.describe Tappay::Client do
       end
     end
 
+    context 'when request returns a Response object' do
+      let(:json_body) { { status: 0, msg: 'Success', data: { id: '123' } }.to_json }
 
+      before do
+        stub_request(:post, endpoint)
+          .to_return(status: 200, body: json_body, headers: { 'Content-Type' => 'application/json' })
+      end
+
+      it 'returns a Response object with parsed_response' do
+        response = client.post(endpoint, data)
+        expect(response.parsed_response).to eq({ 'status' => 0, 'msg' => 'Success', 'data' => { 'id' => '123' } })
+      end
+
+      it 'supports hash-like access with []' do
+        response = client.post(endpoint, data)
+        expect(response['status']).to eq(0)
+        expect(response['data']).to eq({ 'id' => '123' })
+      end
+
+      it 'returns true for success?' do
+        response = client.post(endpoint, data)
+        expect(response.success?).to be true
+      end
+    end
+
+    context 'when response body is not valid JSON' do
+      before do
+        stub_request(:post, endpoint)
+          .to_return(status: 200, body: 'Not a JSON response')
+      end
+
+      it 'returns the raw body when JSON parsing fails' do
+        response = client.post(endpoint, data)
+        expect(response.parsed_response).to eq('Not a JSON response')
+      end
+    end
   end
 end
