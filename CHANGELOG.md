@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.0.0] - 2026-01-26
+
+### Changed
+- **Stable Release**: Promoting to 1.0.0 to indicate production readiness
+- Removed httparty dependency in favor of Ruby's built-in Net::HTTP
+- Reduced gem dependencies and size by using standard library
+- Added custom Response wrapper class to maintain API compatibility
+
+### Highlights
+- Comprehensive payment method support (Credit Card, Line Pay, JKO Pay, Apple Pay, Google Pay)
+- Full transaction lifecycle support (payment, refund, query)
+- 98.8% line coverage and 100% branch coverage
+- Zero external runtime dependencies
+
 ## [0.21.0] - 2025-11-02
 
 ### Added
