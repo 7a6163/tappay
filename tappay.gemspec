@@ -30,7 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rspec", "~> 3.12"
   spec.add_development_dependency "simplecov", "~> 0.22.0"
-  spec.add_development_dependency "simplecov-cobertura", "~> 2.1"
+  spec.add_development_dependency "simplecov-cobertura", "~> 3.1"
   spec.add_development_dependency "webmock", "~> 3.19"
   spec.add_development_dependency "vcr", "~> 6.2"
   spec.add_development_dependency "pry", "~> 0.15"
