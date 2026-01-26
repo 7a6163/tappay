@@ -5,12 +5,12 @@ require 'simplecov'
 require 'simplecov-cobertura'
 require 'webmock/rspec'
 
-SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
-  SimpleCov::Formatter::HTMLFormatter,
-  SimpleCov::Formatter::CoberturaFormatter
-])
-
 SimpleCov.start do
+  formatter SimpleCov::Formatter::MultiFormatter.new([
+    SimpleCov::Formatter::HTMLFormatter,
+    SimpleCov::Formatter::CoberturaFormatter
+  ])
+
   track_files 'lib/**/*.rb'
   add_filter '/spec/'
   add_filter '/vendor/'
