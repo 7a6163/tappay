@@ -14,6 +14,7 @@ A Ruby library for integrating with TapPay payment services. This gem provides a
   - Line Pay
   - JKO Pay
   - Apple Pay
+  - iPass Money
 - Flexible merchant identification:
   - Support for both `merchant_id` and `merchant_group_id`
   - Automatic fallback handling
@@ -83,6 +84,7 @@ The gem uses the following priority order when resolving merchant IDs:
 2. If `merchant_group_id` is not set:
    - For Line Pay: Uses `line_pay_merchant_id` if set, otherwise falls back to `merchant_id`
    - For JKO Pay: Uses `jko_pay_merchant_id` if set, otherwise falls back to `merchant_id`
+   - For iPass Money: Uses `ipass_money_merchant_id` if set, otherwise falls back to `merchant_id`
    - For Instalments: Uses `instalment_merchant_id` if set, otherwise falls back to `merchant_id`
    - For other payment types: Uses `merchant_id`
 
@@ -203,6 +205,40 @@ payment_options = {
 }
 
 payment = Tappay::JkoPay::Pay.new(payment_options)
+result = payment.execute
+```
+
+### iPass Money
+
+#### Configuration
+
+```ruby
+Tappay.configure do |config|
+  config.partner_key = 'YOUR_PARTNER_KEY'
+  config.merchant_id = 'YOUR_MERCHANT_ID'
+  config.merchant_group_id = 'YOUR_MERCHANT_GROUP_ID' # Optional, mutually exclusive with merchant_id
+  config.ipass_money_merchant_id = 'YOUR_IPASS_MONEY_MERCHANT_ID' # Optional, falls back to merchant_id if not set
+  config.sandbox = true # Set to false for production
+end
+```
+
+#### Processing an iPass Money Payment
+
+```ruby
+payment_options = {
+  prime: 'ipass_money_prime',
+  amount: 1000,
+  details: 'Some item',
+  frontend_redirect_url: 'https://your-site.com/ipass_money/result',
+  backend_notify_url: 'https://your-site.com/ipass_money/notify',
+  cardholder: {
+    phone_number: '0912345678',
+    name: 'Test User',
+    email: 'test@example.com'
+  }
+}
+
+payment = Tappay::IPassMoney::Pay.new(payment_options)
 result = payment.execute
 ```
 
