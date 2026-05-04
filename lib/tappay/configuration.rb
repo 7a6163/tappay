@@ -4,7 +4,8 @@ module Tappay
   class Configuration
     attr_accessor :partner_key, :merchant_id, :merchant_group_id, :instalment_merchant_id,
                  :line_pay_merchant_id, :jko_pay_merchant_id, :currency,
-                 :google_pay_merchant_id, :apple_pay_merchant_id
+                 :google_pay_merchant_id, :apple_pay_merchant_id,
+                 :ipass_money_merchant_id
     attr_writer :api_version
 
     def initialize

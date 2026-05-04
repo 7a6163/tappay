@@ -93,6 +93,11 @@ RSpec.describe Tappay::Configuration do
       expect(config.jko_pay_merchant_id).to eq('jko_pay_123')
     end
 
+    it 'sets and gets ipass_money_merchant_id' do
+      config.ipass_money_merchant_id = 'ipass_money_123'
+      expect(config.ipass_money_merchant_id).to eq('ipass_money_123')
+    end
+
     it 'sets and gets currency' do
       config.currency = 'TWD'
       expect(config.currency).to eq('TWD')

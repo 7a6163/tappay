@@ -20,6 +20,7 @@ require_relative "tappay/line_pay/pay"
 require_relative "tappay/jko_pay/pay"
 require_relative "tappay/apple_pay/pay"
 require_relative "tappay/google_pay/pay"
+require_relative "tappay/ipass_money/pay"
 
 module Tappay
   class Error < StandardError; end

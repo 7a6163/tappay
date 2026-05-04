@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0] - 2026-05-04
+
+### Added
+- Added iPass Money payment support
+  - New `IPassMoney::Pay` class for processing iPass Money payments
+  - Added `ipass_money_merchant_id` configuration option (falls back to `merchant_id` when not set; overridden by `merchant_group_id`)
+  - Comprehensive test coverage for iPass Money functionality
+
 ## [1.0.0] - 2026-01-26
 
 ### Changed
