@@ -1,8 +1,45 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'uri'
 
 RSpec.describe Tappay::LinePay::Pay do
+  # uses_merchant_id stores the key in a class-level ivar, which is not
+  # inherited the way the get_merchant_id overrides it replaced were. A
+  # subclass silently charging the default merchant account raises nothing.
+  describe 'subclassing a payment class' do
+    it 'keeps the payment-specific merchant id' do
+      Tappay.configure do |c|
+        c.merchant_id = 'DEFAULT_MERCHANT'
+        c.line_pay_merchant_id = 'LINE_MERCHANT'
+      end
+      subclass = Class.new(described_class)
+      data = subclass.new(
+        amount: 100, details: 'Test', prime: 'p',
+        cardholder: { name: 'A', email: 'a@example.com', phone_number: '0912345678' },
+        frontend_redirect_url: 'https://example.com/result',
+        backend_notify_url: 'https://example.com/notify'
+      ).send(:payment_data)
+
+      expect(data[:merchant_id]).to eq('LINE_MERCHANT')
+    end
+  end
+
+  # The redirect URLs go through to_s before being checked, so a URI - which
+  # does not respond to strip - is accepted rather than blowing up.
+  describe 'redirect urls that are not Strings' do
+    it 'accepts URI objects' do
+      payment = described_class.new(
+        amount: 100, details: 'Test', merchant_id: 'M1', prime: 'p',
+        cardholder: { name: 'A', email: 'a@example.com', phone_number: '0912345678' },
+        frontend_redirect_url: URI('https://example.com/result'),
+        backend_notify_url: URI('https://example.com/notify')
+      )
+      expect(payment.send(:payment_data)[:result_url][:frontend_redirect_url].to_s)
+        .to eq('https://example.com/result')
+    end
+  end
+
   let(:amount) { 1000 }
   let(:details) { 'Test Payment' }
   let(:merchant_id) { 'TEST_MERCHANT' }
@@ -118,7 +155,7 @@ RSpec.describe Tappay::LinePay::Pay do
     end
   end
 
-  describe '#validate_result_url_format!' do
+  describe 'redirect url validation' do
     it 'raises error when frontend_redirect_url is empty string' do
       options = payment_options.merge(frontend_redirect_url: '')
       expect { described_class.new(options) }

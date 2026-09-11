@@ -10,5 +10,6 @@ gemspec
 # slow enough that you only want it deliberately.
 #   bundle exec mutant run
 group :mutant, optional: true do
-  gem 'mutant-rspec', '~> 0.16' if RUBY_VERSION >= '3.3'
+  # Gem::Version, not a String compare: '3.10' >= '3.3' is false.
+  gem 'mutant-rspec', '~> 0.16' if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.3')
 end

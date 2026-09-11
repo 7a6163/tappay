@@ -118,7 +118,7 @@ RSpec.describe Tappay::IPassMoney::Pay do
     end
   end
 
-  describe '#validate_result_url_format!' do
+  describe 'redirect url validation' do
     it 'raises error when frontend_redirect_url is empty string' do
       options = payment_options.merge(frontend_redirect_url: '')
       expect { described_class.new(options) }

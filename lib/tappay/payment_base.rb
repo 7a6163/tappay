@@ -4,6 +4,22 @@ module Tappay
   class PaymentBase < Client
     VALID_INSTALMENT_VALUES = [0, 3, 6, 12, 18, 24, 30].freeze
 
+    class << self
+      # Some payment methods get their own merchant ID from TapPay. Declaring
+      # the config key here replaces a get_merchant_id override per class.
+      def uses_merchant_id(key)
+        @merchant_id_key = key
+      end
+
+      # Walks the ancestry, because a class-level ivar is not inherited and
+      # the get_merchant_id overrides this replaced were. Without this, a
+      # subclass of a payment class silently charges the default merchant.
+      def merchant_id_key
+        @merchant_id_key ||
+          (superclass.merchant_id_key if superclass.respond_to?(:merchant_id_key))
+      end
+    end
+
     def initialize(options = {})
       super
       validate_options!
@@ -82,11 +98,11 @@ module Tappay
     end
 
     def get_merchant_id
-      # If merchant_group_id is set, it takes precedence over all other merchant IDs
+      # merchant_group_id takes precedence over every merchant ID.
       return nil if Tappay.configuration.merchant_group_id
 
-      # Otherwise, return the default merchant_id
-      Tappay.configuration.merchant_id
+      key = self.class.merchant_id_key
+      (key && Tappay.configuration.public_send(key)) || Tappay.configuration.merchant_id
     end
 
     def base_required_options
@@ -105,7 +121,12 @@ module Tappay
     end
 
     def validate_result_url!
-      result_url = options[:result_url]
+      validate_result_url_hash!(options[:result_url])
+    end
+
+    # The one definition of what a result_url hash has to look like. Both the
+    # 3DS path above and the redirect payment methods check against this.
+    def validate_result_url_hash!(result_url)
       raise ValidationError, "result_url must be a hash" unless result_url.is_a?(Hash)
 
       required_fields = %w[frontend_redirect_url backend_notify_url]

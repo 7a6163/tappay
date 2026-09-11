@@ -10,11 +10,11 @@ jobs:
   mutant:
     runs-on: ubuntu-latest
     env:
-      # Mutant exits non-zero whenever anything survives, and 22 mutations here
+      # Mutant exits non-zero whenever anything survives, and 33 mutations here
       # are equivalent - no test can ever kill them (see config/mutant.yml).
       # Gate on the score instead, so a real regression fails and the known
       # floor stays green.
-      MUTANT_COVERAGE_FLOOR: '96.19'
+      MUTANT_COVERAGE_FLOOR: '95.34'
 
     steps:
     - uses: actions/checkout@v6

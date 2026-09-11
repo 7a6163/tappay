@@ -3,6 +3,22 @@
 require 'spec_helper'
 
 RSpec.describe Tappay::CreditCard::Pay do
+  # The other side of the same rule: a class that never declares a key must
+  # keep falling through to the general merchant_id.
+  describe 'a payment class with no dedicated merchant id' do
+    it 'uses the general merchant_id' do
+      Tappay.configure do |c|
+        c.merchant_id = 'DEFAULT_MERCHANT'
+        c.line_pay_merchant_id = 'LINE_MERCHANT'
+      end
+      data = Tappay::CreditCard::PayByPrime.new(
+        amount: 100, details: 'Test', prime: 'p'
+      ).send(:payment_data)
+
+      expect(data[:merchant_id]).to eq('DEFAULT_MERCHANT')
+    end
+  end
+
   describe 'currency' do
     it 'falls back to the configured currency when the option is omitted' do
       Tappay.configure { |c| c.currency = 'USD' }
