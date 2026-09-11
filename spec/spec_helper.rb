@@ -35,8 +35,11 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
-  # Configure Tappay for testing
+  # Configure Tappay for testing. Tappay.configure mutates the existing
+  # configuration rather than replacing it, so without the reset every setting
+  # an example makes leaks into the ones after it.
   config.before(:each) do
+    Tappay.reset
     Tappay.configure do |c|
       c.mode = :sandbox
       c.partner_key = 'test_partner_key'

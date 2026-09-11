@@ -16,16 +16,7 @@ RSpec.describe Tappay do
       expect { raise Tappay::ValidationError }.to raise_error(Tappay::ValidationError)
     end
 
-    it 'defines PaymentError' do
-      expect { raise Tappay::PaymentError }.to raise_error(Tappay::PaymentError)
-    end
 
-    it 'defines RefundError' do
-      expect { raise Tappay::RefundError }.to raise_error(Tappay::RefundError)
-    end
 
-    it 'defines QueryError' do
-      expect { raise Tappay::QueryError }.to raise_error(Tappay::QueryError)
-    end
   end
 end

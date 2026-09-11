@@ -76,9 +76,9 @@ RSpec.describe Tappay::CreditCard::PayByToken do
     context 'with missing currency' do
       let(:options) { valid_options.tap { |o| o.delete(:currency) } }
 
-      it 'raises ValidationError' do
-        expect { described_class.new(options) }
-          .to raise_error(Tappay::ValidationError, /Missing required options: currency/)
+      it 'falls back to the configured currency rather than raising' do
+        Tappay.configure { |c| c.currency = 'USD' }
+        expect(described_class.new(options).send(:payment_data)[:currency]).to eq('USD')
       end
     end
   end

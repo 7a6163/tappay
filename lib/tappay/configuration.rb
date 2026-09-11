@@ -6,15 +6,9 @@ module Tappay
                  :line_pay_merchant_id, :jko_pay_merchant_id, :currency,
                  :google_pay_merchant_id, :apple_pay_merchant_id,
                  :ipass_money_merchant_id
-    attr_writer :api_version
 
     def initialize
       @mode = :sandbox
-      @api_version = '3'
-    end
-
-    def api_version
-      @api_version.to_s
     end
 
     def sandbox?

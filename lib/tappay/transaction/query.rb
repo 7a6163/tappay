@@ -25,6 +25,11 @@ module Tappay
         response = client.post(Endpoints::Transaction.query_url, request_params)
 
         result = symbolize_keys(response.parsed_response)
+        unless result.is_a?(Hash)
+          raise Tappay::ConnectionError,
+                "Expected a JSON object from TapPay, got: #{response.body.to_s[0, 200]}"
+        end
+
         result[:trade_records] ||= []
         result
       end

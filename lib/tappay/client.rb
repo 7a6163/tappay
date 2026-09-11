@@ -69,13 +69,24 @@ module Tappay
     end
 
     def parsed_response
-      @parsed_response ||= JSON.parse(@body)
+      # to_s so that a nil body raises JSON::ParserError rather than the
+      # TypeError JSON.parse(nil) would raise past this rescue.
+      @parsed_response ||= JSON.parse(@body.to_s)
     rescue JSON::ParserError
       @body
     end
 
+    # TapPay signals business failures (declined card, insufficient funds,
+    # expired card) with HTTP 200 and a non-zero `status`, so the HTTP code
+    # alone says nothing. Client only builds a Response once validate_response
+    # has accepted the HTTP code, so `status` is the only question left.
+    #
+    # This means "TapPay processed the request", not "the money moved": for a
+    # credit card the transaction is authorised but capture is asynchronous,
+    # and for LINE Pay / JKO Pay / iPass Money it means only that a payment_url
+    # was created and the customer has yet to pay. Confirm with Transaction::Query.
     def success?
-      @code >= 200 && @code < 300
+      parsed_response.is_a?(Hash) && parsed_response['status'] == 0
     end
 
     def [](key)

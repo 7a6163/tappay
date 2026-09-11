@@ -22,6 +22,7 @@ RSpec.describe Tappay::CreditCard::InstalmentByToken do
     {
       amount: 100,
       details: 'Test payment',
+      merchant_id: 'TEST_MERCHANT',
       card_key: 'test_card_key',
       card_token: 'test_card_token',
       ccv_prime: 'test_ccv_prime',

@@ -61,35 +61,5 @@ RSpec.describe Tappay::Endpoints do
         expect(described_class.query_url).to eq("#{base_url}/tpc/transaction/query")
       end
     end
-
-    describe '.trade_history_url' do
-      it 'returns correct URL' do
-        expect(described_class.trade_history_url).to eq("#{base_url}/tpc/transaction/trade-history")
-      end
-    end
-
-    describe '.cap_url' do
-      it 'returns correct URL' do
-        expect(described_class.cap_url).to eq("#{base_url}/tpc/transaction/cap")
-      end
-    end
-  end
-
-  describe Tappay::Endpoints::Bind do
-    before do
-      allow(Tappay::Endpoints).to receive(:base_url).and_return(base_url)
-    end
-
-    describe '.bind_card_url' do
-      it 'returns correct URL' do
-        expect(described_class.bind_card_url).to eq("#{base_url}/tpc/card/bind")
-      end
-    end
-
-    describe '.remove_card_url' do
-      it 'returns correct URL' do
-        expect(described_class.remove_card_url).to eq("#{base_url}/tpc/card/remove")
-      end
-    end
   end
 end

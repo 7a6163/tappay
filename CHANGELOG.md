@@ -8,6 +8,16 @@
   written against the old README crashes instead of quietly finding nothing.
   Multiply existing `start_time`/`end_time` values by 1000. This warrants a
   2.0.0 release rather than a patch.
+- Public constants and methods are removed: `Tappay::PaymentError`,
+  `Tappay::RefundError`, `Tappay::QueryError`, `Configuration#api_version`
+  (and its writer), `Endpoints::Transaction.trade_history_url`,
+  `Endpoints::Transaction.cap_url` and the `Endpoints::Bind` module. All were
+  dead inside the gem, but each is reachable from application code. The error
+  classes deserve particular care: a downstream `rescue Tappay::PaymentError`
+  now raises `NameError` when the rescue clause is evaluated - that is, only
+  once some other exception is already in flight - turning a handled failure
+  into an unhandled one. Grep for these before upgrading. See **Removed** for
+  why each went.
 - `trade_records` entries now carry every field TapPay returns instead of a
   fixed 12. The keys `transaction_time` and `tsp` are gone; they never held a
   value. Use `time` for the transaction timestamp.
@@ -16,6 +26,34 @@
   through as well.
 
 ### Fixed
+- `Transaction::Query#execute` raises `Tappay::ConnectionError` instead of a
+  bare `TypeError` when TapPay answers HTTP 200 with a non-JSON body, which a
+  maintenance page, proxy or WAF can do. `parsed_response` returns the raw
+  String in that case, and the result was indexed with a Symbol regardless.
+- `Response#parsed_response` no longer raises `TypeError` on a 200 with an
+  empty body. `JSON.parse(nil)` raises `TypeError`, which the `JSON::ParserError`
+  rescue did not catch; now reachable from `success?`, which did not touch the
+  body before this release.
+- `CreditCard::PayByToken` no longer requires `:currency`. It was the only
+  payment class that did - `InstalmentByToken` never has - and requiring it in
+  the constructor made the `config.currency` fallback unreachable on that path.
+- `Response#success?` now reflects TapPay's `status`, not just the HTTP code.
+  TapPay reports declined cards, insufficient funds and expired cards as HTTP
+  200 with a non-zero `status`, so `success?` returned `true` for failed
+  payments. Nothing in the gem read `status` at all. Note that a true result
+  means TapPay processed the request, not that money moved - for redirect
+  methods it means only that a `payment_url` was created.
+- `config.currency` is now actually used. It was declared on `Configuration`
+  but `payment_data` only ever looked at `options[:currency] || 'TWD'`, so
+  setting it did nothing and said nothing.
+- README's credit card examples never sent a request. `Pay.by_prime` and
+  `Instalment.by_prime` return an unexecuted payment object; the examples
+  assigned it to `result` and used it as if it were the response, without
+  calling `execute`.
+- Specs reset `Tappay.configuration` between examples. `Tappay.configure`
+  mutates the existing configuration rather than replacing it, so settings
+  leaked across files - two instalment specs were passing only because another
+  file had left a `merchant_id` behind.
 - `Transaction::Query` time filter is in **milliseconds**, not seconds. The gem
   documented and validated seconds, which TapPay accepts but never matches, so
   queries silently returned zero records. Seconds-magnitude timestamps now raise

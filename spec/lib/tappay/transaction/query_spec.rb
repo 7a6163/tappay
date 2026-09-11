@@ -336,6 +336,22 @@ RSpec.describe Tappay::Transaction::Query do
       end
     end
 
+    # A maintenance page, proxy or WAF can return HTTP 200 with an HTML body.
+    # parsed_response hands back the raw String in that case, which must not
+    # escape as a bare TypeError past callers rescuing Tappay::Error.
+    context 'when the body is not a JSON object' do
+      before do
+        allow(client).to receive(:post).and_return(
+          instance_double(Tappay::Response, parsed_response: '<html>maintenance</html>',
+                                            body: '<html>maintenance</html>')
+        )
+      end
+
+      it 'raises a Tappay error rather than a TypeError' do
+        expect { query.execute }.to raise_error(Tappay::ConnectionError, /Expected a JSON object/)
+      end
+    end
+
     context 'when a field holds an array of objects' do
       let(:response) do
         {

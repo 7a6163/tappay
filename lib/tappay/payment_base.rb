@@ -36,7 +36,7 @@ module Tappay
         partner_key: Tappay.configuration.partner_key,
         amount: options[:amount],
         details: options[:details],
-        currency: options[:currency] || 'TWD',
+        currency: options[:currency] || Tappay.configuration.currency || 'TWD',
         order_number: options[:order_number],
         three_domain_secure: options[:three_domain_secure] || false
       }).tap do |data|

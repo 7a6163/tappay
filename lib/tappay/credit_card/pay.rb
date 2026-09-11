@@ -49,7 +49,7 @@ module Tappay
       private
 
       def additional_required_options
-        [:card_key, :card_token, :currency]
+        [:card_key, :card_token]
       end
     end
   end
