@@ -332,6 +332,14 @@ Two things worth knowing about the records:
 - The transaction timestamp is `time` (milliseconds). `transaction_complete_millis`
   is `0` on records that have not completed.
 
+`status` in the result is TapPay's, not an HTTP code, and **`2` means "End of
+list", not "nothing found"** - it is what you get on the last page, records
+included. Verified against the sandbox: a query returning 33 records answered
+`status: 2`. Treat `0` and `2` alike and read `trade_records`; checking
+`status == 0` before looking drops the final page. `Response#success?` is
+`status == 0`, so it is the wrong question for a query - `Transaction::Query`
+does not use it.
+
 Note: `time` is required and its timestamps are in **milliseconds**, not
 seconds. Seconds are accepted by TapPay but match nothing, so the gem rejects
 them with a `ValidationError` rather than returning an empty list. TapPay caps
@@ -434,6 +442,34 @@ If the score drops, an assertion went missing. Read the new survivor rather
 than lowering the floor: the first run here scored 77.90%, and every one of
 those gaps was genuine - including two tests that passed whether or not the
 code they covered was there at all.
+
+### Contract tests against the sandbox
+
+Stubbed tests assert the gem against its own assumptions, so they cannot catch
+the gem being wrong about TapPay. Every bug fixed in 2.0.0 was exactly that -
+a field name that did not exist, a time filter in the wrong unit - and all of
+them survived a suite with 100% line coverage. One real call catches the lot.
+
+```bash
+export TAPPAY_SANDBOX_PARTNER_KEY=...
+bundle exec rspec spec/contract --tag contract
+```
+
+The specs are excluded from the default run and skip with an explanation if
+the key is unset, so a clone without credentials behaves normally. Nothing is
+written: the Record API is read-only and needs only a partner key.
+
+They check that a millisecond window is accepted, that every field
+`spec/fixtures/transaction_query_response.json` claims still exists in the live
+response, that the transaction timestamp is `time` in milliseconds, and that
+the amounts and capture state refunds reconcile against are all present. New
+fields TapPay has added are reported rather than failed - the gem passes
+everything through, so they break nothing; the fixture just wants re-capturing.
+
+Only `Transaction::Query` is covered. Charging needs a `prime`, which the
+frontend SDK mints from a test card - it is single-use, expires in seconds, and
+there is no server-side way to obtain one, so payment and refund flows cannot
+be driven from a test suite without automating a browser.
 
 ## Contributing
 
