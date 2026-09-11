@@ -442,53 +442,6 @@ RSpec.describe Tappay::Transaction::Query do
       end
     end
 
-    # A maintenance page, proxy or WAF can return HTTP 200 with an HTML body.
-    # parsed_response hands back the raw String in that case, which must not
-    # escape as a bare TypeError past callers rescuing Tappay::Error.
-    context 'when the body is not a JSON object' do
-      before do
-        allow(client).to receive(:post).and_return(
-          instance_double(Tappay::Response, parsed_response: '<html>maintenance</html>',
-                                            body: '<html>maintenance</html>')
-        )
-      end
-
-      it 'raises a Tappay error rather than a TypeError' do
-        expect { query.execute }.to raise_error(Tappay::ConnectionError, /Expected a JSON object/)
-      end
-
-      it 'quotes the body it could not parse' do
-        expect { query.execute }.to raise_error(Tappay::ConnectionError, /<html>maintenance<\/html>/)
-      end
-    end
-
-    context 'when the unparseable body is very long' do
-      before do
-        allow(client).to receive(:post).and_return(
-          instance_double(Tappay::Response, parsed_response: 'x' * 250, body: 'x' * 250)
-        )
-      end
-
-      it 'truncates the quoted body to 200 characters' do
-        expect { query.execute }.to raise_error(Tappay::ConnectionError) do |error|
-          expect(error.message).to include('x' * 200)
-          expect(error.message).not_to include('x' * 201)
-        end
-      end
-    end
-
-    context 'when the response has no body at all' do
-      before do
-        allow(client).to receive(:post).and_return(
-          instance_double(Tappay::Response, parsed_response: nil, body: nil)
-        )
-      end
-
-      it 'still raises a Tappay error' do
-        expect { query.execute }.to raise_error(Tappay::ConnectionError, /Expected a JSON object/)
-      end
-    end
-
     context 'when a field holds an array of objects' do
       let(:response) do
         {

@@ -17,13 +17,14 @@ matcher:
   subjects:
     - Tappay::Transaction::Query*
     - Tappay::Response*
-# Current score: 95.79% (501/523 killed). Every one of the 22 survivors has
+# Current score: 96.19% (505/525 killed). Every one of the 20 survivors has
 # been checked individually and is equivalent - the mutated code behaves
 # identically, so no test can distinguish it:
 #
-#   7  Tappay::X -> X          same constant inside module Tappay
-#   7  time[k]   -> fetch(k)   the first guard already proved both keys present
-#   6  is_a?     -> instance_of?  differs only for a subclass nothing passes
+#   5  Tappay::X -> X          same constant inside module Tappay
+#   6  time[k]   -> fetch(k)   the first guard already proved both keys present
+#   4  is_a?     -> instance_of?  differs only for a subclass nothing passes
+#   4  client = Client.new, and the same shape elsewhere
 #   1  parsed_response["status"] -> self["status"]   Response#[] delegates there
 #   1  code.to_i -> Integer(code)   differs only for a non-numeric HTTP code
 #

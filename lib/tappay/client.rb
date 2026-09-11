@@ -67,12 +67,20 @@ module Tappay
       @headers = net_http_response.to_hash
     end
 
+    # Every TapPay endpoint answers with a JSON object, so a body that is not
+    # one means something other than TapPay replied - a maintenance page, a
+    # proxy, a WAF. Returning the raw body instead turned
+    # `parsed_response['status']` into a String#[] substring search, which
+    # answers nil without complaining. Raise rather than hand back something
+    # that reads like a result.
     def parsed_response
-      # to_s so that a nil body raises JSON::ParserError rather than the
-      # TypeError JSON.parse(nil) would raise past this rescue.
-      @parsed_response ||= JSON.parse(@body.to_s)
+      @parsed_response ||= JSON.parse(@body.to_s).then do |parsed|
+        raise ConnectionError, unexpected_body unless parsed.is_a?(Hash)
+
+        parsed
+      end
     rescue JSON::ParserError
-      @body
+      raise ConnectionError, unexpected_body
     end
 
     # TapPay signals business failures (declined card, insufficient funds,
@@ -85,11 +93,17 @@ module Tappay
     # and for LINE Pay / JKO Pay / iPass Money it means only that a payment_url
     # was created and the customer has yet to pay. Confirm with Transaction::Query.
     def success?
-      parsed_response.is_a?(Hash) && parsed_response['status'] == 0
+      parsed_response['status'] == 0
     end
 
     def [](key)
       parsed_response[key]
+    end
+
+    private
+
+    def unexpected_body
+      "Expected a JSON object from TapPay, got: #{@body.to_s[0, 200]}"
     end
   end
 end
