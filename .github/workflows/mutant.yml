@@ -14,7 +14,7 @@ jobs:
       # are equivalent - no test can ever kill them (see config/mutant.yml).
       # Gate on the score instead, so a real regression fails and the known
       # floor stays green.
-      MUTANT_COVERAGE_FLOOR: '95.79'
+      MUTANT_COVERAGE_FLOOR: '96.19'
 
     steps:
     - uses: actions/checkout@v6

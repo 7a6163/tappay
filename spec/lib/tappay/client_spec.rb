@@ -138,18 +138,51 @@ RSpec.describe Tappay::Client do
       end
     end
 
-    # WebMock turns `body: nil` into an empty String, so this has to build the
-    # Response directly to actually exercise a nil body. JSON.parse(nil) raises
-    # TypeError, which the JSON::ParserError rescue does not catch.
-    context 'when the response body is nil' do
-      let(:raw) { instance_double(Net::HTTPResponse, code: '200', body: nil, to_hash: {}) }
-
-      it 'is not a success instead of raising' do
-        expect(Tappay::Response.new(raw).success?).to be false
+    # Every TapPay endpoint answers with a JSON object. Anything else means
+    # something other than TapPay replied, and there is no result to report -
+    # returning the raw body made parsed_response['status'] a String#[]
+    # substring search that quietly answers nil.
+    describe 'a body that is not a JSON object' do
+      def response_for(body)
+        Tappay::Response.new(
+          instance_double(Net::HTTPResponse, code: '200', body: body, to_hash: {})
+        )
       end
 
-      it 'returns the nil body from parsed_response' do
-        expect(Tappay::Response.new(raw).parsed_response).to be_nil
+      it 'raises on a body that is not JSON at all' do
+        expect { response_for('<html>maintenance</html>').parsed_response }
+          .to raise_error(Tappay::ConnectionError, /Expected a JSON object/)
+      end
+
+      it 'quotes the body it could not parse' do
+        expect { response_for('<html>maintenance</html>').parsed_response }
+          .to raise_error(Tappay::ConnectionError, %r{<html>maintenance</html>})
+      end
+
+      it 'truncates the quoted body at 200 characters' do
+        expect { response_for('x' * 250).parsed_response }
+          .to raise_error(Tappay::ConnectionError) do |error|
+            expect(error.message).to include('x' * 200)
+            expect(error.message).not_to include('x' * 201)
+          end
+      end
+
+      # WebMock turns `body: nil` into an empty String, so a nil body only
+      # happens when the Response is built directly, as it is here.
+      it 'raises on a nil body' do
+        expect { response_for(nil).parsed_response }
+          .to raise_error(Tappay::ConnectionError, /Expected a JSON object/)
+      end
+
+      # Valid JSON, but an Array cannot be indexed by a String key.
+      it 'raises on a JSON array' do
+        expect { response_for('[1, 2, 3]').parsed_response }
+          .to raise_error(Tappay::ConnectionError, /Expected a JSON object/)
+      end
+
+      it 'raises from success? too, rather than answering false' do
+        expect { response_for('<html>maintenance</html>').success? }
+          .to raise_error(Tappay::ConnectionError)
       end
     end
 
@@ -161,38 +194,8 @@ RSpec.describe Tappay::Client do
         )
       end
 
-      it 'is not a success instead of raising KeyError' do
+      it 'is not a success, and does not raise' do
         expect(client.post(endpoint, data).success?).to be false
-      end
-    end
-
-    # A JSON array parses fine but cannot be indexed by a String key, so
-    # success? needs the Hash check rather than just reading ['status'].
-    context 'when the response body is JSON but not an object' do
-      before do
-        stub_request(:post, endpoint).to_return(
-          status: 200, body: '[1, 2, 3]', headers: { 'Content-Type' => 'application/json' }
-        )
-      end
-
-      it 'is not a success instead of raising' do
-        expect(client.post(endpoint, data).success?).to be false
-      end
-    end
-
-    context 'when response body is not valid JSON' do
-      before do
-        stub_request(:post, endpoint)
-          .to_return(status: 200, body: 'Not a JSON response')
-      end
-
-      it 'is not a success' do
-        expect(client.post(endpoint, data).success?).to be false
-      end
-
-      it 'returns the raw body when JSON parsing fails' do
-        response = client.post(endpoint, data)
-        expect(response.parsed_response).to eq('Not a JSON response')
       end
     end
   end
