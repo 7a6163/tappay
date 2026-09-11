@@ -7,6 +7,13 @@
   given in seconds, where 1.1.x silently returned an empty result list. Code
   written against the old README crashes instead of quietly finding nothing.
   Multiply existing `start_time`/`end_time` values by 1000.
+- `Response#parsed_response` returns a Hash or raises `Tappay::ConnectionError`.
+  It previously returned the raw body String when `JSON.parse` failed, which
+  made `response.parsed_response['status']` a `String#[]` substring search that
+  quietly answers `nil` - the same silent-wrong-answer shape as the bugs above.
+  A body that is not a JSON object means something other than TapPay replied
+  (a maintenance page, a proxy, a WAF), so there is no result to hand back.
+  `success?` raises for such a response rather than reporting `false`.
 - Public constants and methods are removed: `Tappay::PaymentError`,
   `Tappay::RefundError`, `Tappay::QueryError`, `Configuration#api_version`
   (and its writer), `Endpoints::Transaction.trade_history_url`,
