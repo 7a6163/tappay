@@ -372,11 +372,16 @@ It needs Ruby >= 3.3, so it lives in an optional bundle group rather than the
 gemspec - the gem itself supports >= 2.7. Scope is `config/mutant.yml`,
 currently `Transaction::Query` and `Response`.
 
-A non-zero exit is a prompt to read the report, not a failure. Some mutations
-are equivalent and can never be killed: inside `module Tappay`, `Client.new` and
-`Tappay::Client.new` are the same call, and `is_a?(Hash)` and
-`instance_of?(Hash)` differ only for a Hash subclass nothing passes. Read each
-survivor and decide whether it is noise or a missing assertion.
+The current score is 95.79% (501 of 523). A non-zero exit is a prompt to read
+the report, not a failure: the 22 survivors are all equivalent mutations that
+no test can distinguish, enumerated in `config/mutant.yml`. Inside
+`module Tappay`, `Client.new` and `Tappay::Client.new` are the same call;
+`is_a?(Hash)` and `instance_of?(Hash)` differ only for a Hash subclass nothing
+passes.
+
+If the score drops, a real assertion went missing. Read each new survivor
+rather than assuming it is more of the same - the first run here scored 77.90%
+and every one of those gaps turned out to be genuine.
 
 ## Contributing
 

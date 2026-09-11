@@ -103,7 +103,10 @@ RSpec.describe Tappay::Client do
         response = client.post(endpoint, data)
         expect(response.code).to eq(200)
         expect(response.body).to eq({ status: 0, msg: 'Success', data: { id: '123' } }.to_json)
-        expect(response.headers).to include('content-type')
+        # Must be the converted Hash: a Net::HTTPResponse answers include? too,
+        # so `include('content-type')` alone passes without the to_hash call.
+        expect(response.headers).to be_a(Hash)
+        expect(response.headers['content-type']).to eq(['application/json'])
       end
 
       it 'returns true for success?' do
@@ -147,6 +150,19 @@ RSpec.describe Tappay::Client do
 
       it 'returns the nil body from parsed_response' do
         expect(Tappay::Response.new(raw).parsed_response).to be_nil
+      end
+    end
+
+    context 'when the response is a JSON object with no status key' do
+      before do
+        stub_request(:post, endpoint).to_return(
+          status: 200, body: '{"msg":"no status here"}',
+          headers: { 'Content-Type' => 'application/json' }
+        )
+      end
+
+      it 'is not a success instead of raising KeyError' do
+        expect(client.post(endpoint, data).success?).to be false
       end
     end
 

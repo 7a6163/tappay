@@ -114,6 +114,82 @@ RSpec.describe Tappay::Transaction::Query do
         }.to raise_error(Tappay::ValidationError, /too large to be milliseconds/)
       end
 
+      # Every rule below is `bad(start) || bad(end)`. Breaking both at once -
+      # which every test here used to do - passes even if the code only ever
+      # checks one side, so each rule gets a one-sided case.
+      floor = Tappay::Transaction::Query::MILLIS_FLOOR
+      ceiling = Tappay::Transaction::Query::MILLIS_CEILING
+
+      it 'raises when only start_time is in seconds' do
+        expect {
+          described_class.new(time: { start_time: 1_788_965_579, end_time: end_time })
+        }.to raise_error(Tappay::ValidationError, /must be in milliseconds, not seconds/)
+      end
+
+      it 'raises when only end_time is in seconds' do
+        expect {
+          described_class.new(time: { start_time: start_time, end_time: 1_788_965_579 })
+        }.to raise_error(Tappay::ValidationError, /must be in milliseconds, not seconds/)
+      end
+
+      it 'raises when only start_time is too large' do
+        expect {
+          described_class.new(time: { start_time: ceiling + 1, end_time: end_time })
+        }.to raise_error(Tappay::ValidationError, /too large to be milliseconds/)
+      end
+
+      it 'raises when only end_time is too large' do
+        expect {
+          described_class.new(time: { start_time: start_time, end_time: ceiling + 1 })
+        }.to raise_error(Tappay::ValidationError, /too large to be milliseconds/)
+      end
+
+      it 'raises when only start_time is not an integer' do
+        expect {
+          described_class.new(time: { start_time: '1788965579000', end_time: end_time })
+        }.to raise_error(Tappay::ValidationError, /must be Unix timestamps in milliseconds/)
+      end
+
+      it 'raises when only end_time is not an integer' do
+        expect {
+          described_class.new(time: { start_time: start_time, end_time: '1788965579000' })
+        }.to raise_error(Tappay::ValidationError, /must be Unix timestamps in milliseconds/)
+      end
+
+      it 'raises when start_time is present but nil' do
+        expect {
+          described_class.new(time: { start_time: nil, end_time: end_time })
+        }.to raise_error(Tappay::ValidationError, /must include start_time and end_time/)
+      end
+
+      it 'raises when end_time is present but nil' do
+        expect {
+          described_class.new(time: { start_time: start_time, end_time: nil })
+        }.to raise_error(Tappay::ValidationError, /must include start_time and end_time/)
+      end
+
+      # The bounds are inclusive at the floor and exclusive at the ceiling.
+      it 'accepts a timestamp exactly at the floor' do
+        expect {
+          described_class.new(time: { start_time: floor, end_time: ceiling - 1 })
+        }.not_to raise_error
+      end
+
+      it 'raises for an end_time exactly at the ceiling' do
+        expect {
+          described_class.new(time: { start_time: floor, end_time: ceiling })
+        }.to raise_error(Tappay::ValidationError, /too large to be milliseconds/)
+      end
+
+      # end_time stays below the ceiling so only start_time can trip the check.
+      # With both at the ceiling, end_time catches it either way and a `>` in
+      # place of `>=` on start_time goes unnoticed.
+      it 'raises for a start_time exactly at the ceiling' do
+        expect {
+          described_class.new(time: { start_time: ceiling, end_time: ceiling - 1 })
+        }.to raise_error(Tappay::ValidationError, /too large to be milliseconds/)
+      end
+
       it 'raises ValidationError when start_time is later than end_time' do
         expect {
           described_class.new(time: { start_time: end_time + 1, end_time: end_time })
@@ -378,6 +454,37 @@ RSpec.describe Tappay::Transaction::Query do
       end
 
       it 'raises a Tappay error rather than a TypeError' do
+        expect { query.execute }.to raise_error(Tappay::ConnectionError, /Expected a JSON object/)
+      end
+
+      it 'quotes the body it could not parse' do
+        expect { query.execute }.to raise_error(Tappay::ConnectionError, /<html>maintenance<\/html>/)
+      end
+    end
+
+    context 'when the unparseable body is very long' do
+      before do
+        allow(client).to receive(:post).and_return(
+          instance_double(Tappay::Response, parsed_response: 'x' * 250, body: 'x' * 250)
+        )
+      end
+
+      it 'truncates the quoted body to 200 characters' do
+        expect { query.execute }.to raise_error(Tappay::ConnectionError) do |error|
+          expect(error.message).to include('x' * 200)
+          expect(error.message).not_to include('x' * 201)
+        end
+      end
+    end
+
+    context 'when the response has no body at all' do
+      before do
+        allow(client).to receive(:post).and_return(
+          instance_double(Tappay::Response, parsed_response: nil, body: nil)
+        )
+      end
+
+      it 'still raises a Tappay error' do
         expect { query.execute }.to raise_error(Tappay::ConnectionError, /Expected a JSON object/)
       end
     end

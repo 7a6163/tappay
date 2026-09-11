@@ -17,10 +17,18 @@ matcher:
   subjects:
     - Tappay::Transaction::Query*
     - Tappay::Response*
-# Current score: 85.46% (447/523 killed). The remainder is dominated by
-# equivalent mutations mutant cannot kill - `Client` vs `Tappay::Client` inside
-# module Tappay, `is_a?` vs `instance_of?`, `to_i` vs `Integer()` on a string
-# that is always numeric. Chasing 100% here buys contrived tests, not safety.
+# Current score: 95.79% (501/523 killed). Every one of the 22 survivors has
+# been checked individually and is equivalent - the mutated code behaves
+# identically, so no test can distinguish it:
+#
+#   7  Tappay::X -> X          same constant inside module Tappay
+#   7  time[k]   -> fetch(k)   the first guard already proved both keys present
+#   6  is_a?     -> instance_of?  differs only for a subclass nothing passes
+#   1  parsed_response["status"] -> self["status"]   Response#[] delegates there
+#   1  code.to_i -> Integer(code)   differs only for a non-numeric HTTP code
+#
+# If this number drops, a real assertion went missing. Re-check the list before
+# assuming a new survivor is more of the same.
 coverage_criteria:
   test_result: true
   timeout: false
