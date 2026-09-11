@@ -1,0 +1,35 @@
+# Mutation testing config. Run with: bundle exec mutant run
+#
+# Mutant rewrites the source in small ways (flip a boolean, drop a call, swap
+# an operator) and reruns the specs. A mutation that survives is a line the
+# suite does not actually check - which is how `transaction_time` and the
+# seconds/milliseconds mix-up went unnoticed under 100% line coverage.
+# This repository is public and MIT-licensed, which is what mutant's free
+# opensource usage type requires. A private or commercial code base needs a
+# paid licence instead.
+usage: opensource
+
+integration:
+  name: rspec
+requires:
+  - tappay
+matcher:
+  subjects:
+    - Tappay::Transaction::Query*
+    - Tappay::Response*
+# Current score: 95.79% (501/523 killed). Every one of the 22 survivors has
+# been checked individually and is equivalent - the mutated code behaves
+# identically, so no test can distinguish it:
+#
+#   7  Tappay::X -> X          same constant inside module Tappay
+#   7  time[k]   -> fetch(k)   the first guard already proved both keys present
+#   6  is_a?     -> instance_of?  differs only for a subclass nothing passes
+#   1  parsed_response["status"] -> self["status"]   Response#[] delegates there
+#   1  code.to_i -> Integer(code)   differs only for a non-numeric HTTP code
+#
+# If this number drops, a real assertion went missing. Re-check the list before
+# assuming a new survivor is more of the same.
+coverage_criteria:
+  test_result: true
+  timeout: false
+  process_abort: true

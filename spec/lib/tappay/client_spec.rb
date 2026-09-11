@@ -95,6 +95,20 @@ RSpec.describe Tappay::Client do
         expect(response['data']).to eq({ 'id' => '123' })
       end
 
+      it 'returns nil for a key the response does not have' do
+        expect(client.post(endpoint, data)['no_such_key']).to be_nil
+      end
+
+      it 'exposes the HTTP code, body and headers' do
+        response = client.post(endpoint, data)
+        expect(response.code).to eq(200)
+        expect(response.body).to eq({ status: 0, msg: 'Success', data: { id: '123' } }.to_json)
+        # Must be the converted Hash: a Net::HTTPResponse answers include? too,
+        # so `include('content-type')` alone passes without the to_hash call.
+        expect(response.headers).to be_a(Hash)
+        expect(response.headers['content-type']).to eq(['application/json'])
+      end
+
       it 'returns true for success?' do
         response = client.post(endpoint, data)
         expect(response.success?).to be true
@@ -124,9 +138,41 @@ RSpec.describe Tappay::Client do
       end
     end
 
-    context 'when the response has no body' do
+    # WebMock turns `body: nil` into an empty String, so this has to build the
+    # Response directly to actually exercise a nil body. JSON.parse(nil) raises
+    # TypeError, which the JSON::ParserError rescue does not catch.
+    context 'when the response body is nil' do
+      let(:raw) { instance_double(Net::HTTPResponse, code: '200', body: nil, to_hash: {}) }
+
+      it 'is not a success instead of raising' do
+        expect(Tappay::Response.new(raw).success?).to be false
+      end
+
+      it 'returns the nil body from parsed_response' do
+        expect(Tappay::Response.new(raw).parsed_response).to be_nil
+      end
+    end
+
+    context 'when the response is a JSON object with no status key' do
       before do
-        stub_request(:post, endpoint).to_return(status: 200, body: nil)
+        stub_request(:post, endpoint).to_return(
+          status: 200, body: '{"msg":"no status here"}',
+          headers: { 'Content-Type' => 'application/json' }
+        )
+      end
+
+      it 'is not a success instead of raising KeyError' do
+        expect(client.post(endpoint, data).success?).to be false
+      end
+    end
+
+    # A JSON array parses fine but cannot be indexed by a String key, so
+    # success? needs the Hash check rather than just reading ['status'].
+    context 'when the response body is JSON but not an object' do
+      before do
+        stub_request(:post, endpoint).to_return(
+          status: 200, body: '[1, 2, 3]', headers: { 'Content-Type' => 'application/json' }
+        )
       end
 
       it 'is not a success instead of raising' do

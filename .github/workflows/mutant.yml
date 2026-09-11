@@ -1,0 +1,52 @@
+name: Mutation Testing
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  mutant:
+    runs-on: ubuntu-latest
+    env:
+      # Mutant exits non-zero whenever anything survives, and 22 mutations here
+      # are equivalent - no test can ever kill them (see config/mutant.yml).
+      # Gate on the score instead, so a real regression fails and the known
+      # floor stays green.
+      MUTANT_COVERAGE_FLOOR: '95.79'
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Set up Ruby
+      # Mutant needs >= 3.3; the gem itself supports >= 2.7 and is tested
+      # against that range in rspec.yml.
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.3'
+        bundler-cache: true
+
+    - name: Install with the mutant group
+      run: |
+        bundle config set --local with mutant
+        bundle install
+
+    - name: Run mutant
+      run: |
+        bundle exec mutant run > mutant.log 2>&1 || true
+        cat mutant.log
+
+        score=$(grep -E '^Coverage:' mutant.log | tail -1 | sed 's/[^0-9.]//g')
+        if [ -z "$score" ]; then
+          echo "::error::mutant produced no coverage line; it likely crashed"
+          exit 1
+        fi
+
+        echo "Mutation coverage: ${score}% (floor ${MUTANT_COVERAGE_FLOOR}%)"
+        awk -v s="$score" -v floor="$MUTANT_COVERAGE_FLOOR" 'BEGIN {
+          if (s + 0 < floor + 0) {
+            printf "::error::Mutation coverage %.2f%% is below the %.2f%% floor. A surviving mutation means an assertion went missing - read the report above rather than lowering the floor.\n", s, floor
+            exit 1
+          }
+        }'

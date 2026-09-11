@@ -62,7 +62,6 @@ module Tappay
     attr_reader :code, :body, :headers
 
     def initialize(net_http_response)
-      @response = net_http_response
       @code = net_http_response.code.to_i
       @body = net_http_response.body
       @headers = net_http_response.to_hash
