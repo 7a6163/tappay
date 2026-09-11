@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'csv'
 require 'json'
 require 'net/http'
 require 'uri'

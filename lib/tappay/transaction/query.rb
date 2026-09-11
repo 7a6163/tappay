@@ -3,6 +3,14 @@
 module Tappay
   module Transaction
     class Query
+      # TapPay's time filter is in milliseconds. Values at the wrong scale are
+      # accepted by the API but match nothing (seconds land in 1970,
+      # microseconds in the year 50000), so reject them loudly rather than
+      # returning an empty list.
+      # ponytail: magnitude heuristic, only valid for 1973-03-03 .. 5138-11-16
+      MILLIS_FLOOR = 100_000_000_000
+      MILLIS_CEILING = 100_000_000_000_000
+
       def initialize(time:, order_number: nil, bank_transaction_id: nil, records_per_page: 50, page: 0, order_by: nil)
         @time = validate_time!(time)
         @order_number = order_number
@@ -16,15 +24,9 @@ module Tappay
         client = Tappay::Client.new
         response = client.post(Endpoints::Transaction.query_url, request_params)
 
-        {
-          status: response['status'],
-          msg: response['msg'],
-          records_per_page: response['records_per_page'],
-          page: response['page'],
-          total_page_count: response['total_page_count'],
-          number_of_transactions: response['number_of_transactions'],
-          trade_records: parse_trade_records(response['trade_records'])
-        }
+        result = symbolize_keys(response.parsed_response)
+        result[:trade_records] ||= []
+        result
       end
 
       private
@@ -53,7 +55,17 @@ module Tappay
         end
 
         unless time[:start_time].is_a?(Integer) && time[:end_time].is_a?(Integer)
-          raise Tappay::ValidationError, "start_time and end_time must be Unix timestamps (integers)"
+          raise Tappay::ValidationError, "start_time and end_time must be Unix timestamps in milliseconds (integers)"
+        end
+
+        if time[:start_time] < MILLIS_FLOOR || time[:end_time] < MILLIS_FLOOR
+          raise Tappay::ValidationError,
+                "start_time and end_time must be in milliseconds, not seconds (multiply by 1000)"
+        end
+
+        if time[:start_time] >= MILLIS_CEILING || time[:end_time] >= MILLIS_CEILING
+          raise Tappay::ValidationError,
+                "start_time and end_time are too large to be milliseconds (microseconds?)"
         end
 
         if time[:start_time] > time[:end_time]
@@ -63,35 +75,15 @@ module Tappay
         time
       end
 
-      def parse_trade_records(records)
-        return [] unless records&.any?
-
-        records.map do |record|
-          {
-            record_status: record['record_status'],
-            rec_trade_id: record['rec_trade_id'],
-            amount: record['amount'],
-            currency: record['currency'],
-            order_number: record['order_number'],
-            bank_transaction_id: record['bank_transaction_id'],
-            auth_code: record['auth_code'],
-            cardholder: parse_cardholder(record['cardholder']),
-            merchant_id: record['merchant_id'],
-            transaction_time: record['transaction_time'],
-            tsp: record['tsp'],
-            card_identifier: record['card_identifier']
-          }
+      # Pass every field TapPay returns straight through, at the envelope level
+      # as well as per trade record. A whitelist silently drops new fields and
+      # silently returns nil for a mistyped key.
+      def symbolize_keys(value)
+        case value
+        when Hash then value.to_h { |k, v| [k.to_sym, symbolize_keys(v)] }
+        when Array then value.map { |v| symbolize_keys(v) }
+        else value
         end
-      end
-
-      def parse_cardholder(cardholder)
-        return unless cardholder
-
-        {
-          phone_number: cardholder['phone_number'],
-          name: cardholder['name'],
-          email: cardholder['email']
-        }
       end
     end
   end

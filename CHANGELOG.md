@@ -1,5 +1,39 @@
 # Changelog
 
+## [Unreleased]
+
+### Breaking
+- `Transaction::Query.new` now raises `Tappay::ValidationError` when `time` is
+  given in seconds, where 1.1.x silently returned an empty result list. Code
+  written against the old README crashes instead of quietly finding nothing.
+  Multiply existing `start_time`/`end_time` values by 1000. This warrants a
+  2.0.0 release rather than a patch.
+- `trade_records` entries now carry every field TapPay returns instead of a
+  fixed 12. The keys `transaction_time` and `tsp` are gone; they never held a
+  value. Use `time` for the transaction timestamp.
+- The query result itself is no longer restricted to six known envelope keys,
+  so anything TapPay adds alongside `status`/`msg`/`trade_records` comes
+  through as well.
+
+### Fixed
+- `Transaction::Query` time filter is in **milliseconds**, not seconds. The gem
+  documented and validated seconds, which TapPay accepts but never matches, so
+  queries silently returned zero records. Seconds-magnitude timestamps now raise
+  a `ValidationError` telling you to multiply by 1000.
+- `Transaction::Query` no longer whitelists response fields. It previously kept
+  only 12 of the ~32 fields TapPay returns, dropping `refunded_amount`,
+  `is_captured`, `original_amount`, `bank_result_code`, `bank_result_msg`,
+  `payment_method`, every timestamp, and 7 of the 10 `cardholder` fields. Two of
+  the 12 keys (`transaction_time`, `tsp`) matched nothing in the response and
+  always returned `nil`; the real transaction timestamp is `time`. All fields
+  are now passed through with keys symbolized recursively.
+- Removed the unused `require 'csv'` from `lib/tappay.rb`, which raised
+  `LoadError` on Ruby 3.4+ where `csv` is no longer a default gem.
+
+### Changed
+- Transaction query specs now run against a real captured API response in
+  `spec/fixtures/transaction_query_response.json` instead of a hand-written one.
+
 ## [1.1.0] - 2026-05-04
 
 ### Added

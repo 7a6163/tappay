@@ -247,11 +247,11 @@ result = payment.execute
 Query transaction records with required time range:
 
 ```ruby
-# Query transactions within a specific time range
+# time is required; TapPay caps the range at 90 days
 result = Tappay::Transaction::Query.new(
   time: {
-    start_time: 1706198400,  # Unix timestamp for start time
-    end_time: 1706284800     # Unix timestamp for end time
+    start_time: 1706198400000,  # Unix timestamp in MILLISECONDS
+    end_time: 1706284800000     # Unix timestamp in MILLISECONDS
   },
   order_number: 'ORDER123',  # Optional: filter by order number
   records_per_page: 50,      # Optional: default is 50
@@ -270,7 +270,28 @@ result[:trade_records].each do |record|
 end
 ```
 
-Note: The `time` parameter with both `start_time` and `end_time` is required for querying transactions.
+Every field TapPay returns for a trade record is passed through verbatim, with
+keys symbolized (recursively, so nested objects like `refund_info` and
+`card_info` are symbol-keyed too). The gem does not whitelist fields, so
+`refunded_amount`, `is_captured`, `bank_result_code`, `bank_result_msg`,
+`original_amount`, `time` and the various `*_millis` timestamps are all
+available, and fields TapPay adds later work without a gem upgrade. The exact
+key set varies by payment method. See
+`spec/fixtures/transaction_query_response.json` for a real response.
+
+Two things worth knowing about the records:
+
+- `amount` is what remains after refunds. A fully refunded transaction reports
+  `amount: 0` with `original_amount` and `refunded_amount` both set to the
+  original charge, so compare `refunded_amount` against `original_amount` to
+  tell a partial refund from a full one.
+- The transaction timestamp is `time` (milliseconds). `transaction_complete_millis`
+  is `0` on records that have not completed.
+
+Note: `time` is required and its timestamps are in **milliseconds**, not
+seconds. Seconds are accepted by TapPay but match nothing, so the gem rejects
+them with a `ValidationError` rather than returning an empty list. TapPay caps
+the range at 90 days.
 
 ### Error Handling
 
