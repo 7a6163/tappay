@@ -17,19 +17,25 @@ matcher:
   subjects:
     - Tappay::Transaction::Query*
     - Tappay::Response*
-# Current score: 96.19% (505/525 killed). Every one of the 20 survivors has
+    - Tappay::PrimePayment*
+    - Tappay::RedirectPayment*
+# Current score: 95.34% (676/709 killed). Every one of the 33 survivors has
 # been checked individually and is equivalent - the mutated code behaves
 # identically, so no test can distinguish it:
 #
-#   5  Tappay::X -> X          same constant inside module Tappay
-#   6  time[k]   -> fetch(k)   the first guard already proved both keys present
-#   4  is_a?     -> instance_of?  differs only for a subclass nothing passes
-#   4  client = Client.new, and the same shape elsewhere
-#   1  parsed_response["status"] -> self["status"]   Response#[] delegates there
-#   1  code.to_i -> Integer(code)   differs only for a non-numeric HTTP code
+#  14  time[k] -> time.fetch(k)   the option is required, so the key is present
+#   7  Tappay::X -> X             same constant inside module Tappay
+#   4  is_a? -> instance_of?      differs only for a subclass nothing passes
+#   4  strip -> lstrip/rstrip     the check is .empty?, and a string that is
+#                                 whitespace-only is empty after all three
+#   2  to_s -> to_str             identical for the Strings that reach it
+#   1  parsed_response[k] -> self[k]   Response#[] delegates to exactly that
+#   1  code.to_i -> Integer(code)      differs only for a non-numeric HTTP code
 #
 # If this number drops, a real assertion went missing. Re-check the list before
-# assuming a new survivor is more of the same.
+# assuming a new survivor is more of the same - the first run scored 77.90% and
+# every one of those 116 survivors turned out to be genuine.
+
 coverage_criteria:
   test_result: true
   timeout: false

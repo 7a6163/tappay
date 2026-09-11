@@ -418,11 +418,12 @@ bundle exec mutant run
 ```
 
 It needs Ruby >= 3.3, so it lives in an optional bundle group rather than the
-gemspec - the gem itself supports >= 2.7. Scope is `config/mutant.yml`,
-currently `Transaction::Query` and `Response`.
+gemspec - the gem itself supports >= 2.7. Scope is `config/mutant.yml`:
+`Transaction::Query`, `Response`, and the two payment base classes that five
+payment methods now share.
 
-The current score is 96.19% (505 of 525). Mutant exits non-zero whenever
-anything survives, and the 20 survivors here are equivalent mutations that no
+The current score is 95.34% (676 of 709). Mutant exits non-zero whenever
+anything survives, and the 33 survivors here are equivalent mutations that no
 test can distinguish - inside `module Tappay`, `Client.new` and
 `Tappay::Client.new` are the same call, and `is_a?(Hash)` and
 `instance_of?(Hash)` differ only for a Hash subclass nothing passes. Each one
