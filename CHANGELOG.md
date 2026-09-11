@@ -1,13 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [2.0.0] - 2026-09-11
 
 ### Breaking
 - `Transaction::Query.new` now raises `Tappay::ValidationError` when `time` is
   given in seconds, where 1.1.x silently returned an empty result list. Code
   written against the old README crashes instead of quietly finding nothing.
-  Multiply existing `start_time`/`end_time` values by 1000. This warrants a
-  2.0.0 release rather than a patch.
+  Multiply existing `start_time`/`end_time` values by 1000.
 - Public constants and methods are removed: `Tappay::PaymentError`,
   `Tappay::RefundError`, `Tappay::QueryError`, `Configuration#api_version`
   (and its writer), `Endpoints::Transaction.trade_history_url`,
@@ -564,4 +563,4 @@
 - Transaction queries
 - Basic error handling
 
-## [Unreleased]
+## [2.0.0] - 2026-09-11

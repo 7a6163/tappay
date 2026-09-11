@@ -46,6 +46,49 @@ Or install it yourself as:
 $ gem install tappay_ruby
 ```
 
+## Upgrading from 1.x to 2.0
+
+Four changes need action. Each replaces a silent wrong answer with a loud one.
+
+**Transaction query timestamps are milliseconds.** 1.x documented seconds.
+TapPay accepts a seconds-magnitude range but matches nothing against it, so
+`Transaction::Query` returned an empty list for every query. Multiply by 1000:
+
+```ruby
+# before - always returned []
+time: { start_time: 30.days.ago.to_i, end_time: Time.now.to_i }
+# after
+time: { start_time: 30.days.ago.to_i * 1000, end_time: Time.now.to_i * 1000 }
+```
+
+Out-of-scale values now raise `Tappay::ValidationError` rather than returning
+nothing.
+
+**`Response#success?` reflects TapPay's `status`, not the HTTP code.** TapPay
+answers a declined card with HTTP 200 and a non-zero `status`, so 1.x reported
+failed payments as successful. If you were already checking
+`result['status'] == 0` yourself, nothing changes; you can now use `success?`
+instead. See [Checking the result](#checking-the-result) for what it does and
+does not promise.
+
+**Trade records carry every field TapPay returns.** 1.x kept 12 of roughly 32.
+`transaction_time` and `tsp` are gone - they matched nothing in the response
+and were always `nil`. The transaction timestamp is `time`, in milliseconds.
+Fields such as `refunded_amount`, `is_captured`, `original_amount`,
+`bank_result_code` and `bank_result_msg` are now available.
+
+**Some public constants are gone.** Grep before upgrading:
+
+```bash
+rg 'Tappay::(PaymentError|RefundError|QueryError)|api_version|Endpoints::Bind|trade_history_url|cap_url'
+```
+
+`Tappay::PaymentError`, `Tappay::RefundError` and `Tappay::QueryError` were
+never raised by the gem, so they never caught anything - use `success?`.
+Removing them matters because `rescue Tappay::PaymentError` now raises
+`NameError` when the rescue clause is evaluated, which happens only once some
+other exception is already in flight.
+
 ## Configuration
 
 There are several ways to configure the gem:
@@ -346,6 +389,12 @@ rescue Tappay::Error => e
   puts "TapPay error: #{e.message}"
 end
 ```
+
+The gem raises `Tappay::ValidationError` (bad or missing options),
+`Tappay::ConfigurationError` (authentication rejected) and
+`Tappay::ConnectionError` (timeout, unreachable endpoint, unparseable
+response), all of which inherit from `Tappay::Error`. Business failures are
+not exceptions - check `success?`.
 
 ## Development
 
