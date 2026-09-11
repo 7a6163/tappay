@@ -319,16 +319,22 @@ RSpec.describe Tappay::Transaction::Query do
       end
     end
 
-    context 'when no records are found' do
+    # Status 2 is "End of list", which TapPay returns on the last page whether
+    # or not that page has records on it. Verified live: 33 records came back
+    # with status 2. Reading 2 as "nothing found" drops the final page.
+    context 'when the last page is reached' do
       let(:response) do
         {
           'status' => 2,
-          'msg' => 'No records found',
-          'records_per_page' => 50,
+          'msg' => 'End of list',
+          'records_per_page' => 200,
           'page' => 0,
-          'total_page_count' => 0,
-          'number_of_transactions' => 0,
-          'trade_records' => []
+          'total_page_count' => 1,
+          'number_of_transactions' => 2,
+          'trade_records' => [
+            { 'rec_trade_id' => 'R1', 'amount' => 100 },
+            { 'rec_trade_id' => 'R2', 'amount' => 200 }
+          ]
         }
       end
 
@@ -351,16 +357,13 @@ RSpec.describe Tappay::Transaction::Query do
         ).and_return(api_response(response))
       end
 
-      it 'returns empty result with status 2' do
+      it 'still returns the records on that page' do
         result = query.execute
 
         expect(result[:status]).to eq(2)
-        expect(result[:msg]).to eq('No records found')
-        expect(result[:records_per_page]).to eq(50)
-        expect(result[:page]).to eq(0)
-        expect(result[:total_page_count]).to eq(0)
-        expect(result[:number_of_transactions]).to eq(0)
-        expect(result[:trade_records]).to be_empty
+        expect(result[:msg]).to eq('End of list')
+        expect(result[:trade_records].size).to eq(2)
+        expect(result[:trade_records].first[:rec_trade_id]).to eq('R1')
       end
     end
 

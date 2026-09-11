@@ -29,6 +29,9 @@ require 'bundler/setup'
 require 'tappay'
 
 RSpec.configure do |config|
+  # Contract specs hit the live TapPay sandbox, so they are opt-in.
+  config.filter_run_excluding :contract unless ENV['TAPPAY_SANDBOX_PARTNER_KEY']
+
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = '.rspec_status'
 
