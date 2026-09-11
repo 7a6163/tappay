@@ -9,10 +9,12 @@ on:
 jobs:
   mutant:
     runs-on: ubuntu-latest
-    # Informational. Mutant produces equivalent mutations it can never kill
-    # (Tappay::Client vs Client inside module Tappay, is_a? vs instance_of?),
-    # so a non-zero exit is a prompt to read the report, not a broken build.
-    continue-on-error: true
+    env:
+      # Mutant exits non-zero whenever anything survives, and 22 mutations here
+      # are equivalent - no test can ever kill them (see config/mutant.yml).
+      # Gate on the score instead, so a real regression fails and the known
+      # floor stays green.
+      MUTANT_COVERAGE_FLOOR: '95.79'
 
     steps:
     - uses: actions/checkout@v6
@@ -31,4 +33,20 @@ jobs:
         bundle install
 
     - name: Run mutant
-      run: bundle exec mutant run
+      run: |
+        bundle exec mutant run > mutant.log 2>&1 || true
+        cat mutant.log
+
+        score=$(grep -E '^Coverage:' mutant.log | tail -1 | sed 's/[^0-9.]//g')
+        if [ -z "$score" ]; then
+          echo "::error::mutant produced no coverage line; it likely crashed"
+          exit 1
+        fi
+
+        echo "Mutation coverage: ${score}% (floor ${MUTANT_COVERAGE_FLOOR}%)"
+        awk -v s="$score" -v floor="$MUTANT_COVERAGE_FLOOR" 'BEGIN {
+          if (s + 0 < floor + 0) {
+            printf "::error::Mutation coverage %.2f%% is below the %.2f%% floor. A surviving mutation means an assertion went missing - read the report above rather than lowering the floor.\n", s, floor
+            exit 1
+          }
+        }'
