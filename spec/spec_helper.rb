@@ -5,7 +5,7 @@ require 'simplecov'
 require 'simplecov-cobertura'
 require 'webmock/rspec'
 
-SimpleCov.start do
+SimpleCov.configure do
   formatter SimpleCov::Formatter::MultiFormatter.new([
     SimpleCov::Formatter::HTMLFormatter,
     SimpleCov::Formatter::CoberturaFormatter
@@ -20,6 +20,10 @@ SimpleCov.start do
   add_filter 'lib/tappay_ruby.rb'
   enable_coverage :branch
 end
+
+# Mutant reruns this suite once per mutation; letting SimpleCov run each time
+# is wasted work and overwrites coverage/coverage.xml with a 0% report.
+SimpleCov.start unless defined?(Mutant)
 
 require 'bundler/setup'
 require 'tappay'

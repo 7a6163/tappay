@@ -45,6 +45,30 @@ RSpec.describe Tappay::Transaction::Query do
       end
     end
 
+    it 'asks for 50 records on page 0 by default' do
+      params = described_class.new(time: time_params).send(:request_params)
+      expect(params[:records_per_page]).to eq(50)
+      expect(params[:page]).to eq(0)
+    end
+
+    it 'carries every filter it was given through to the request' do
+      params = described_class.new(
+        time: time_params,
+        order_number: 'ORDER-1',
+        bank_transaction_id: 'BANK-1',
+        records_per_page: 5,
+        page: 2,
+        order_by: { attribute: 'time', is_descending: false }
+      ).send(:request_params)
+
+      expect(params[:records_per_page]).to eq(5)
+      expect(params[:page]).to eq(2)
+      expect(params[:order_by]).to eq(attribute: 'time', is_descending: false)
+      expect(params[:filters]).to eq(
+        order_number: 'ORDER-1', bank_transaction_id: 'BANK-1', time: time_params
+      )
+    end
+
     context 'with missing time parameter' do
       it 'raises ArgumentError' do
         expect {
@@ -63,6 +87,12 @@ RSpec.describe Tappay::Transaction::Query do
       it 'raises ValidationError when end_time is missing' do
         expect {
           described_class.new(time: { start_time: start_time })
+        }.to raise_error(Tappay::ValidationError, /time parameter must include start_time and end_time/)
+      end
+
+      it 'raises ValidationError when time is not a hash' do
+        expect {
+          described_class.new(time: 'yesterday')
         }.to raise_error(Tappay::ValidationError, /time parameter must include start_time and end_time/)
       end
 

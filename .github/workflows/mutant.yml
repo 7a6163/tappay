@@ -1,0 +1,34 @@
+name: Mutation Testing
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  mutant:
+    runs-on: ubuntu-latest
+    # Informational. Mutant produces equivalent mutations it can never kill
+    # (Tappay::Client vs Client inside module Tappay, is_a? vs instance_of?),
+    # so a non-zero exit is a prompt to read the report, not a broken build.
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Set up Ruby
+      # Mutant needs >= 3.3; the gem itself supports >= 2.7 and is tested
+      # against that range in rspec.yml.
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.3'
+        bundler-cache: true
+
+    - name: Install with the mutant group
+      run: |
+        bundle config set --local with mutant
+        bundle install
+
+    - name: Run mutant
+      run: bundle exec mutant run

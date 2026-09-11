@@ -349,7 +349,34 @@ end
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies. Then run
+`bundle exec rspec` for the tests, or `bin/console` for an interactive prompt.
+
+### Mutation testing
+
+Line coverage says a line ran, not that anything checked what it did. Both bugs
+fixed in 2.0.0 - a field name that never matched the API and a time filter in
+the wrong unit - sat under 100% line coverage for the life of the gem.
+
+[Mutant](https://github.com/mbj/mutant) changes the source in small ways (flips
+a boolean, drops a call, swaps an operator) and reruns the suite. A mutation
+that survives marks behaviour nothing asserts.
+
+```bash
+bundle config set --local with mutant
+bundle install
+bundle exec mutant run
+```
+
+It needs Ruby >= 3.3, so it lives in an optional bundle group rather than the
+gemspec - the gem itself supports >= 2.7. Scope is `config/mutant.yml`,
+currently `Transaction::Query` and `Response`.
+
+A non-zero exit is a prompt to read the report, not a failure. Some mutations
+are equivalent and can never be killed: inside `module Tappay`, `Client.new` and
+`Tappay::Client.new` are the same call, and `is_a?(Hash)` and
+`instance_of?(Hash)` differ only for a Hash subclass nothing passes. Read each
+survivor and decide whether it is noise or a missing assertion.
 
 ## Contributing
 
