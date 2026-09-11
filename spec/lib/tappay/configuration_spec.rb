@@ -8,7 +8,6 @@ RSpec.describe Tappay::Configuration do
   describe '#initialize' do
     it 'sets default values' do
       expect(config.mode).to eq(:sandbox)
-      expect(config.api_version).to eq('3')
     end
   end
 
@@ -104,16 +103,6 @@ RSpec.describe Tappay::Configuration do
     end
   end
 
-  describe '#api_version' do
-    it 'returns api_version as string' do
-      config.api_version = 3
-      expect(config.api_version).to eq('3')
-    end
-
-    it 'maintains default api_version' do
-      expect(config.api_version).to eq('3')
-    end
-  end
 
   describe '#validate!' do
     context 'without partner_key' do

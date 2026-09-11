@@ -101,10 +101,47 @@ RSpec.describe Tappay::Client do
       end
     end
 
+    # TapPay reports declined cards and the like as HTTP 200 with a non-zero
+    # status. Treating the HTTP code as the answer marks failed payments as
+    # successful ones.
+    context 'when the HTTP request succeeds but TapPay reports a failure' do
+      before do
+        stub_request(:post, endpoint).to_return(
+          status: 200,
+          body: { status: 10003, msg: 'Card is declined' }.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+      end
+
+      it 'is not a success' do
+        expect(client.post(endpoint, data).success?).to be false
+      end
+
+      it 'still exposes the status and message' do
+        response = client.post(endpoint, data)
+        expect(response['status']).to eq(10003)
+        expect(response['msg']).to eq('Card is declined')
+      end
+    end
+
+    context 'when the response has no body' do
+      before do
+        stub_request(:post, endpoint).to_return(status: 200, body: nil)
+      end
+
+      it 'is not a success instead of raising' do
+        expect(client.post(endpoint, data).success?).to be false
+      end
+    end
+
     context 'when response body is not valid JSON' do
       before do
         stub_request(:post, endpoint)
           .to_return(status: 200, body: 'Not a JSON response')
+      end
+
+      it 'is not a success' do
+        expect(client.post(endpoint, data).success?).to be false
       end
 
       it 'returns the raw body when JSON parsing fails' do

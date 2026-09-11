@@ -3,6 +3,31 @@
 require 'spec_helper'
 
 RSpec.describe Tappay::CreditCard::Pay do
+  describe 'currency' do
+    it 'falls back to the configured currency when the option is omitted' do
+      Tappay.configure { |c| c.currency = 'USD' }
+      payment = Tappay::CreditCard::PayByPrime.new(
+        prime: 'test_prime', amount: 100, details: 'Test', merchant_id: 'M1'
+      )
+      expect(payment.send(:payment_data)[:currency]).to eq('USD')
+    end
+
+    it 'prefers an explicit option over the configured currency' do
+      Tappay.configure { |c| c.currency = 'USD' }
+      payment = Tappay::CreditCard::PayByPrime.new(
+        prime: 'test_prime', amount: 100, details: 'Test', merchant_id: 'M1', currency: 'JPY'
+      )
+      expect(payment.send(:payment_data)[:currency]).to eq('JPY')
+    end
+
+    it 'defaults to TWD when neither is set' do
+      payment = Tappay::CreditCard::PayByPrime.new(
+        prime: 'test_prime', amount: 100, details: 'Test', merchant_id: 'M1'
+      )
+      expect(payment.send(:payment_data)[:currency]).to eq('TWD')
+    end
+  end
+
   let(:amount) { 1000 }
   let(:details) { 'Test Payment' }
   let(:merchant_id) { 'TEST_MERCHANT' }

@@ -59,6 +59,7 @@ Tappay.configure do |config|
   config.merchant_id = 'YOUR_MERCHANT_ID'
   config.jko_pay_merchant_id = 'YOUR_JKO_PAY_MERCHANT_ID'  # Optional, falls back to merchant_id if not set
   config.line_pay_merchant_id = 'YOUR_LINE_PAY_MERCHANT_ID'  # Optional, falls back to merchant_id if not set
+  config.currency = 'TWD'  # Optional, default for payments that do not pass :currency
 end
 ```
 
@@ -103,7 +104,7 @@ result = Tappay::CreditCard::Pay.by_prime(
     name: 'Test User',
     email: 'test@example.com'
   }
-)
+).execute
 
 # Payment with saved card token
 result = Tappay::CreditCard::Pay.by_token(
@@ -113,7 +114,7 @@ result = Tappay::CreditCard::Pay.by_token(
   currency: 'TWD',
   details: 'Order Details',
   ccv_prime: 'ccv_prime_from_tappay'  # Optional: CVV verification
-)
+).execute
 
 # Instalment payment (3-30 months)
 result = Tappay::CreditCard::Instalment.by_prime(
@@ -126,7 +127,7 @@ result = Tappay::CreditCard::Instalment.by_prime(
     name: 'Test User',
     email: 'test@example.com'
   }
-)
+).execute
 
 # Instalment payment with saved card token
 result = Tappay::CreditCard::Instalment.by_token(
@@ -136,7 +137,7 @@ result = Tappay::CreditCard::Instalment.by_token(
   instalment: 12,
   details: 'Order Details',
   ccv_prime: 'ccv_prime_from_tappay'  # Optional: CVV verification
-)
+).execute
 ```
 
 ### Line Pay
@@ -293,6 +294,35 @@ seconds. Seconds are accepted by TapPay but match nothing, so the gem rejects
 them with a `ValidationError` rather than returning an empty list. TapPay caps
 the range at 90 days.
 
+### Checking the result
+
+`Pay.by_prime` and friends return an unexecuted payment object - call
+`execute` to send the request. TapPay reports business failures (declined
+card, insufficient funds, expired card) as **HTTP 200 with a non-zero
+`status`**, so `success?` checks that status rather than the HTTP code:
+
+```ruby
+result = Tappay::CreditCard::Pay.by_prime(...).execute
+
+if result.success?          # status == 0
+  result['rec_trade_id']
+else
+  result['status']          # e.g. 10003
+  result['msg']             # e.g. 'Card is declined'
+end
+```
+
+**`success?` does not mean the money has moved.** It means TapPay accepted and
+processed the request. What that implies depends on the payment method:
+
+- **Credit card** - the transaction was authorised. Capture is asynchronous;
+  confirm it with `is_captured` from a `Transaction::Query`.
+- **LINE Pay / JKO Pay / iPass Money** - only that a `payment_url` was created.
+  The customer has not paid yet. Redirect them to `result['payment_url']`, and
+  treat your `backend_notify_url` callback plus a `Transaction::Query` as the
+  authoritative answer. TapPay's own guidance is to query the Record API before
+  showing a result page to the customer.
+
 ### Error Handling
 
 The gem provides comprehensive error handling:
@@ -302,8 +332,12 @@ begin
   result = Tappay::CreditCard::Pay.by_prime(
     prime: 'prime_from_tappay_sdk',
     amount: 100,
+    details: 'Order Details',
     order_number: 'ORDER-123'
-  )
+  ).execute
+
+  # TapPay reports declined cards as HTTP 200 with a non-zero status.
+  raise "Payment failed: #{result['msg']}" unless result.success?
 rescue Tappay::ValidationError => e
   # Handle validation errors (e.g., missing required fields)
   puts "Validation error: #{e.message}"

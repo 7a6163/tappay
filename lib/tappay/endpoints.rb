@@ -33,26 +33,6 @@ module Tappay
         def query_url
           "#{Endpoints.base_url}/tpc/transaction/query"
         end
-
-        def trade_history_url
-          "#{Endpoints.base_url}/tpc/transaction/trade-history"
-        end
-
-        def cap_url
-          "#{Endpoints.base_url}/tpc/transaction/cap"
-        end
-      end
-    end
-
-    module Bind
-      class << self
-        def bind_card_url
-          "#{Endpoints.base_url}/tpc/card/bind"
-        end
-
-        def remove_card_url
-          "#{Endpoints.base_url}/tpc/card/remove"
-        end
       end
     end
   end
